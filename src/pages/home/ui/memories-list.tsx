@@ -64,13 +64,13 @@ export function MemoriesList({ selectedTagIds }: MemoriesListProps) {
                     <NoteCreateItem />
                 ) : (
                     <NoteItem
-                        memory={note as NoteMemory}
                         maxContentLines={Math.max(
                             2,
                             Math.floor(
                                 estimateNoteHeight(note as NoteMemory, NOTE_COLUMN_WIDTH) / 24,
                             ) - 4,
                         )}
+                        memory={note as NoteMemory}
                     />
                 )
             }

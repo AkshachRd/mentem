@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { SearchBar } from './search-bar';
 import { HomeContent } from './home-content';
 
+import { Badge } from '@/shared/ui/badge';
+
 export function HomePage() {
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
@@ -14,6 +16,7 @@ export function HomePage() {
                 <SearchBar selectedTagIds={selectedTagIds} setSelectedTagIds={setSelectedTagIds} />
             </div>
             <HomeContent selectedTagIds={selectedTagIds} />
+            <Badge variant="default">Default</Badge>
         </section>
     );
 }
