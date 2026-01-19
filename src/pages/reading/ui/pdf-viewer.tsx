@@ -101,6 +101,76 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         return () => clearTimeout(timeoutId);
     }, [pageFit, pageWidth, containerWidth, savedFitScale, calculatePageFit]);
 
+    // Отслеживание видимой страницы при прокрутке в режиме "all pages"
+    useEffect(() => {
+        if (viewMode !== 'all' || !numPages || !containerRef.current) return;
+
+        const container = containerRef.current;
+        let rafId: number | null = null;
+        const lastPageRef = { current: pageNumber };
+
+        const updateVisiblePage = () => {
+            const pageElements = Array.from(
+                container.querySelectorAll('[data-page-number]'),
+            ) as HTMLElement[];
+
+            if (pageElements.length === 0) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const containerCenter = containerRect.top + containerRect.height / 2;
+
+            let closestPage = 1;
+            let minDistance = Infinity;
+
+            pageElements.forEach((pageEl) => {
+                const pageRect = pageEl.getBoundingClientRect();
+                const pageCenter = pageRect.top + pageRect.height / 2;
+                const distance = Math.abs(containerCenter - pageCenter);
+
+                // Учитываем только страницы, которые хотя бы частично видны
+                const isVisible =
+                    pageRect.bottom >= containerRect.top && pageRect.top <= containerRect.bottom;
+
+                if (isVisible && distance < minDistance) {
+                    minDistance = distance;
+                    const pageNum = parseInt(pageEl.dataset.pageNumber || '1', 10);
+
+                    closestPage = pageNum;
+                }
+            });
+
+            // Обновляем только если номер страницы действительно изменился
+            if (
+                closestPage !== lastPageRef.current &&
+                closestPage >= 1 &&
+                closestPage <= numPages
+            ) {
+                lastPageRef.current = closestPage;
+                setPageNumber(closestPage);
+            }
+        };
+
+        const handleScroll = () => {
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
+
+            rafId = requestAnimationFrame(updateVisiblePage);
+        };
+
+        // Первоначальное обновление
+        updateVisiblePage();
+
+        container.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
+        };
+    }, [viewMode, numPages, scale]);
+
     useEffect(() => {
         if (filePath) {
             setPageNumber(1);
@@ -277,7 +347,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                         )}
                         {numPages && viewMode === 'all' && (
                             <span className="text-muted-foreground text-sm">
-                                {numPages} {numPages === 1 ? 'page' : 'pages'}
+                                Page {pageNumber} of {numPages}
                             </span>
                         )}
                         <div className="flex items-center gap-4">
@@ -364,17 +434,26 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                     />
                                 ) : (
                                     numPages &&
-                                    Array.from(new Array(numPages), (el, index) => (
-                                        <Page
-                                            key={`page_${index + 1}`}
-                                            className="max-w-full"
-                                            pageNumber={index + 1}
-                                            renderAnnotationLayer={true}
-                                            renderTextLayer={true}
-                                            scale={scale}
-                                            onLoadSuccess={onPageLoadSuccess}
-                                        />
-                                    ))
+                                    Array.from(new Array(numPages), (el, index) => {
+                                        const pageNum = index + 1;
+
+                                        return (
+                                            <div
+                                                key={`page_${pageNum}`}
+                                                className="flex justify-center"
+                                                data-page-number={pageNum}
+                                            >
+                                                <Page
+                                                    className="max-w-full"
+                                                    pageNumber={pageNum}
+                                                    renderAnnotationLayer={true}
+                                                    renderTextLayer={true}
+                                                    scale={scale}
+                                                    onLoadSuccess={onPageLoadSuccess}
+                                                />
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </Document>
                         </div>
