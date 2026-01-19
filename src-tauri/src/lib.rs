@@ -71,7 +71,6 @@ pub fn run() {
     }))
     .plugin(tauri_plugin_deep_link::init())
     .plugin(tauri_plugin_dialog::init())
-    .plugin(tauri_plugin_fs::init())
     .invoke_handler(tauri::generate_handler![
       fs_any_write_text_file,
       fs_any_read_text_file,
