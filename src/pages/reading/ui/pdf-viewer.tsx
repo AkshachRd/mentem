@@ -109,6 +109,11 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         let rafId: number | null = null;
         const lastPageRef = { current: pageNumber };
 
+        // При переключении в режим "all pages" скроллим к первой странице
+        container.scrollTo({ top: 0, behavior: 'instant' });
+        setPageNumber(1);
+        lastPageRef.current = 1;
+
         const updateVisiblePage = () => {
             const pageElements = Array.from(
                 container.querySelectorAll('[data-page-number]'),
@@ -158,8 +163,10 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             rafId = requestAnimationFrame(updateVisiblePage);
         };
 
-        // Первоначальное обновление
-        updateVisiblePage();
+        // Первоначальное обновление с задержкой, чтобы страницы успели загрузиться
+        const timeoutId = setTimeout(() => {
+            updateVisiblePage();
+        }, 100);
 
         container.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -168,6 +175,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             if (rafId !== null) {
                 cancelAnimationFrame(rafId);
             }
+            clearTimeout(timeoutId);
         };
     }, [viewMode, numPages, scale]);
 
@@ -224,12 +232,51 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         setError('Failed to load PDF file');
     };
 
+    const scrollToPage = (targetPage: number) => {
+        if (!containerRef.current || !numPages) return;
+
+        const pageElement = containerRef.current.querySelector(
+            `[data-page-number="${targetPage}"]`,
+        ) as HTMLElement;
+
+        if (pageElement && containerRef.current) {
+            const container = containerRef.current;
+            const containerRect = container.getBoundingClientRect();
+            const pageRect = pageElement.getBoundingClientRect();
+
+            // Вычисляем позицию для центрирования страницы в контейнере
+            const scrollTop =
+                container.scrollTop +
+                pageRect.top -
+                containerRect.top -
+                containerRect.height / 2 +
+                pageRect.height / 2;
+
+            container.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth',
+            });
+        }
+    };
+
     const goToPrevPage = () => {
-        setPageNumber((prev) => Math.max(1, prev - 1));
+        const newPage = Math.max(1, pageNumber - 1);
+
+        setPageNumber(newPage);
+
+        if (viewMode === 'all') {
+            scrollToPage(newPage);
+        }
     };
 
     const goToNextPage = () => {
-        setPageNumber((prev) => Math.min(numPages || 1, prev + 1));
+        const newPage = Math.min(numPages || 1, pageNumber + 1);
+
+        setPageNumber(newPage);
+
+        if (viewMode === 'all') {
+            scrollToPage(newPage);
+        }
     };
 
     const handleZoomIn = () => {
@@ -322,7 +369,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                 <div className="flex items-center justify-between">
                     <CardTitle>PDF Viewer</CardTitle>
                     <div className="flex items-center gap-4">
-                        {numPages && viewMode === 'single' && (
+                        {numPages && (
                             <div className="flex items-center gap-2">
                                 <Button
                                     disabled={pageNumber <= 1}
@@ -344,11 +391,6 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                     Next
                                 </Button>
                             </div>
-                        )}
-                        {numPages && viewMode === 'all' && (
-                            <span className="text-muted-foreground text-sm">
-                                Page {pageNumber} of {numPages}
-                            </span>
                         )}
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
