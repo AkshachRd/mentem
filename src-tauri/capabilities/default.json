@@ -15,6 +15,12 @@
     },
     {
       "identifier": "dialog:allow-open"
+    },
+    {
+      "identifier": "fs:default"
+    },
+    {
+      "identifier": "fs:allow-read-file"
     }
   ]
 }

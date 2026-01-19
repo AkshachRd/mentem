@@ -14,6 +14,11 @@ fn fs_any_read_text_file(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn fs_any_read_binary_file(path: String) -> Result<Vec<u8>, String> {
+  fs::read(path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn fs_any_mkdir(path: String) -> Result<(), String> {
   fs::create_dir_all(path).map_err(|e| e.to_string())
 }
@@ -66,9 +71,11 @@ pub fn run() {
     }))
     .plugin(tauri_plugin_deep_link::init())
     .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_fs::init())
     .invoke_handler(tauri::generate_handler![
       fs_any_write_text_file,
       fs_any_read_text_file,
+      fs_any_read_binary_file,
       fs_any_mkdir,
       fs_any_remove,
       fs_any_exists,

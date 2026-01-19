@@ -15,6 +15,11 @@ const nextConfig = {
     // Configure assetPrefix or else the server won't properly resolve your assets.
     assetPrefix: isProd ? undefined : `http://${internalHost}:4250`,
     experimental: {},
+    webpack: (config) => {
+        // Alias canvas to false to avoid bundling issues with pdfjs
+        config.resolve.alias.canvas = false;
+        return config;
+    },
 };
 
 export default nextConfig;
