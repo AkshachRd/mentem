@@ -164,12 +164,40 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
     const handleZoomIn = () => {
         setPageFit(false);
-        setScale((prev) => Math.min(MAX_ZOOM, prev + ZOOM_STEP));
+        setScale((prev) => {
+            // Округляем вверх до ближайшего круглого значения (кратного 25%)
+            const nextRound = Math.ceil(prev / ZOOM_STEP) * ZOOM_STEP;
+
+            // Если уже на круглом значении, переходим к следующему
+            const diff = Math.abs(prev - nextRound);
+
+            if (diff < 0.001) {
+                // Уже на круглом значении, добавляем шаг
+                return Math.min(MAX_ZOOM, nextRound + ZOOM_STEP);
+            }
+
+            // Округляем до ближайшего круглого значения
+            return Math.min(MAX_ZOOM, nextRound);
+        });
     };
 
     const handleZoomOut = () => {
         setPageFit(false);
-        setScale((prev) => Math.max(MIN_ZOOM, prev - ZOOM_STEP));
+        setScale((prev) => {
+            // Округляем вниз до ближайшего круглого значения (кратного 25%)
+            const prevRound = Math.floor(prev / ZOOM_STEP) * ZOOM_STEP;
+
+            // Если уже на круглом значении, переходим к предыдущему
+            const diff = Math.abs(prev - prevRound);
+
+            if (diff < 0.001) {
+                // Уже на круглом значении, вычитаем шаг
+                return Math.max(MIN_ZOOM, prevRound - ZOOM_STEP);
+            }
+
+            // Округляем до ближайшего круглого значения
+            return Math.max(MIN_ZOOM, prevRound);
+        });
     };
 
     const handleResetZoom = () => {
