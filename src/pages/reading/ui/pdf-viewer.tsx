@@ -36,6 +36,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const [pageFit, setPageFit] = useState(false);
     const [pageWidth, setPageWidth] = useState<number | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+    const [savedFitScale, setSavedFitScale] = useState<number | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -49,6 +50,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         const availableWidth = containerWidth - padding;
         const calculatedScale = availableWidth / pageWidth;
         const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedScale));
+
+        // Сохраняем вычисленный масштаб при первом расчете
+        setSavedFitScale((prev) => prev ?? newScale);
 
         setScale((prev) => {
             const diff = Math.abs(prev - newScale);
@@ -84,9 +88,10 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         return () => resizeObserver.disconnect();
     }, []);
 
-    // Автоматический расчет масштаба для page fit при изменении размеров
+    // Автоматический расчет масштаба для page fit при изменении размеров окна
+    // Но только если сохраненный масштаб еще не установлен
     useEffect(() => {
-        if (!pageFit || !pageWidth || containerWidth <= 0) return;
+        if (!pageFit || !pageWidth || containerWidth <= 0 || savedFitScale !== null) return;
 
         // Небольшая задержка для корректного вычисления размеров
         const timeoutId = setTimeout(() => {
@@ -94,7 +99,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         }, 50);
 
         return () => clearTimeout(timeoutId);
-    }, [pageFit, pageWidth, containerWidth, calculatePageFit]);
+    }, [pageFit, pageWidth, containerWidth, savedFitScale, calculatePageFit]);
 
     useEffect(() => {
         if (filePath) {
@@ -105,6 +110,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             setScale(1.0);
             setPageFit(false);
             setPageWidth(null);
+            setSavedFitScale(null);
 
             // Конвертируем локальный файл в Blob URL для react-pdf
             const loadFile = async () => {
@@ -176,12 +182,17 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
         setPageFit(newPageFit);
 
-        // Если включаем page fit и данные уже есть, сразу пересчитываем
-        if (newPageFit && pageWidth && containerRef.current) {
-            // Небольшая задержка для корректного вычисления размеров
-            setTimeout(() => {
-                calculatePageFit();
-            }, 50);
+        if (newPageFit) {
+            // Если у нас уже есть сохраненный масштаб fit, используем его
+            if (savedFitScale !== null) {
+                setScale(savedFitScale);
+            } else if (pageWidth && containerRef.current) {
+                // Иначе вычисляем новый масштаб
+                // Небольшая задержка для корректного вычисления размеров
+                setTimeout(() => {
+                    calculatePageFit();
+                }, 50);
+            }
         }
     };
 
