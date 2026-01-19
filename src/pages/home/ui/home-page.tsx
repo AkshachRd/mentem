@@ -4,8 +4,10 @@ import { useState } from 'react';
 
 import { SearchBar } from './search-bar';
 import { HomeContent } from './home-content';
+import { ReadingCard } from './reading-card';
+import { StudyCard } from './study-card';
 
-import { Badge } from '@/shared/ui/badge';
+import { Badge } from '@/shared/ui/shadcn/badge';
 
 export function HomePage() {
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -17,6 +19,8 @@ export function HomePage() {
             </div>
             <HomeContent selectedTagIds={selectedTagIds} />
             <Badge variant="default">Default</Badge>
+            <ReadingCard />
+            <StudyCard />
         </section>
     );
 }
