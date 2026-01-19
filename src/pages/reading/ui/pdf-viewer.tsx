@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { invoke } from '@tauri-apps/api/core';
 import { Switch } from '@heroui/react';
@@ -24,12 +24,77 @@ type PdfViewerProps = {
 
 type ViewMode = 'single' | 'all';
 
+const ZOOM_STEP = 0.25;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 3.0;
+
 export function PdfViewer({ filePath }: PdfViewerProps) {
     const [numPages, setNumPages] = useState<number | null>(null);
     const [pageNumber, setPageNumber] = useState(1);
     const [viewMode, setViewMode] = useState<ViewMode>('single');
+    const [scale, setScale] = useState(1.0);
+    const [pageFit, setPageFit] = useState(false);
+    const [pageWidth, setPageWidth] = useState<number | null>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+    // Функция для расчета масштаба page fit
+    const calculatePageFit = useCallback(() => {
+        if (!containerRef.current || !pageWidth) return;
+
+        const padding = 32; // padding контейнера
+        const containerWidth = containerRef.current.getBoundingClientRect().width;
+        const availableWidth = containerWidth - padding;
+        const calculatedScale = availableWidth / pageWidth;
+        const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedScale));
+
+        setScale((prev) => {
+            const diff = Math.abs(prev - newScale);
+
+            // Обновляем только если разница больше 0.01 (1%)
+            return diff > 0.01 ? newScale : prev;
+        });
+    }, [pageWidth]);
+
+    // Обработка загрузки страницы для получения её размеров
+    const onPageLoadSuccess = useCallback((page: { width: number; height: number }) => {
+        setPageWidth(page.width);
+    }, []);
+
+    // Отслеживание размера контейнера
+    useLayoutEffect(() => {
+        if (!containerRef.current) return;
+
+        const updateWidth = () => {
+            if (containerRef.current) {
+                const width = containerRef.current.getBoundingClientRect().width;
+
+                setContainerWidth(width);
+            }
+        };
+
+        updateWidth();
+
+        const resizeObserver = new ResizeObserver(updateWidth);
+
+        resizeObserver.observe(containerRef.current);
+
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    // Автоматический расчет масштаба для page fit при изменении размеров
+    useEffect(() => {
+        if (!pageFit || !pageWidth || containerWidth <= 0) return;
+
+        // Небольшая задержка для корректного вычисления размеров
+        const timeoutId = setTimeout(() => {
+            calculatePageFit();
+        }, 50);
+
+        return () => clearTimeout(timeoutId);
+    }, [pageFit, pageWidth, containerWidth, calculatePageFit]);
 
     useEffect(() => {
         if (filePath) {
@@ -37,6 +102,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             setNumPages(null);
             setError(null);
             setFileUrl(null);
+            setScale(1.0);
+            setPageFit(false);
+            setPageWidth(null);
 
             // Конвертируем локальный файл в Blob URL для react-pdf
             const loadFile = async () => {
@@ -86,6 +154,35 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
     const goToNextPage = () => {
         setPageNumber((prev) => Math.min(numPages || 1, prev + 1));
+    };
+
+    const handleZoomIn = () => {
+        setPageFit(false);
+        setScale((prev) => Math.min(MAX_ZOOM, prev + ZOOM_STEP));
+    };
+
+    const handleZoomOut = () => {
+        setPageFit(false);
+        setScale((prev) => Math.max(MIN_ZOOM, prev - ZOOM_STEP));
+    };
+
+    const handleResetZoom = () => {
+        setPageFit(false);
+        setScale(1.0);
+    };
+
+    const handlePageFit = () => {
+        const newPageFit = !pageFit;
+
+        setPageFit(newPageFit);
+
+        // Если включаем page fit и данные уже есть, сразу пересчитываем
+        if (newPageFit && pageWidth && containerRef.current) {
+            // Небольшая задержка для корректного вычисления размеров
+            setTimeout(() => {
+                calculatePageFit();
+            }, 50);
+        }
     };
 
     if (!filePath) {
@@ -144,22 +241,64 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                 {numPages} {numPages === 1 ? 'page' : 'pages'}
                             </span>
                         )}
-                        <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-xs">Single page</span>
-                            <Switch
-                                aria-label="Toggle view mode"
-                                isSelected={viewMode === 'all'}
-                                size="sm"
-                                onValueChange={(isSelected) => {
-                                    setViewMode(isSelected ? 'all' : 'single');
-                                }}
-                            />
-                            <span className="text-muted-foreground text-xs">All pages</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground text-xs">Single page</span>
+                                <Switch
+                                    aria-label="Toggle view mode"
+                                    isSelected={viewMode === 'all'}
+                                    size="sm"
+                                    onValueChange={(isSelected) => {
+                                        setViewMode(isSelected ? 'all' : 'single');
+                                    }}
+                                />
+                                <span className="text-muted-foreground text-xs">All pages</span>
+                            </div>
+                            <div className="flex items-center gap-2 border-l pl-4">
+                                <Button
+                                    disabled={scale <= MIN_ZOOM}
+                                    size="sm"
+                                    title="Zoom out"
+                                    variant="outline"
+                                    onClick={handleZoomOut}
+                                >
+                                    −
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    title="Fit to page"
+                                    variant={pageFit ? 'default' : 'outline'}
+                                    onClick={handlePageFit}
+                                >
+                                    Fit
+                                </Button>
+                                <span className="text-muted-foreground min-w-[3rem] text-center text-xs">
+                                    {Math.round(scale * 100)}%
+                                </span>
+                                <Button
+                                    disabled={scale >= MAX_ZOOM}
+                                    size="sm"
+                                    title="Zoom in"
+                                    variant="outline"
+                                    onClick={handleZoomIn}
+                                >
+                                    +
+                                </Button>
+                                <Button
+                                    disabled={scale === 1.0 && !pageFit}
+                                    size="sm"
+                                    title="Reset zoom"
+                                    variant="outline"
+                                    onClick={handleResetZoom}
+                                >
+                                    Reset
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col overflow-auto p-4">
+            <CardContent ref={containerRef} className="flex flex-1 flex-col overflow-auto p-4">
                 {error ? (
                     <div className="text-destructive text-center">
                         <p>{error}</p>
@@ -181,6 +320,8 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                         pageNumber={pageNumber}
                                         renderAnnotationLayer={true}
                                         renderTextLayer={true}
+                                        scale={scale}
+                                        onLoadSuccess={onPageLoadSuccess}
                                     />
                                 ) : (
                                     numPages &&
@@ -191,6 +332,8 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                             pageNumber={index + 1}
                                             renderAnnotationLayer={true}
                                             renderTextLayer={true}
+                                            scale={scale}
+                                            onLoadSuccess={onPageLoadSuccess}
                                         />
                                     ))
                                 )}
