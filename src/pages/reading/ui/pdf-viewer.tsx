@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { invoke } from '@tauri-apps/api/core';
+import { Switch } from '@heroui/react';
+
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -20,9 +22,12 @@ type PdfViewerProps = {
     filePath: string | null;
 };
 
+type ViewMode = 'single' | 'all';
+
 export function PdfViewer({ filePath }: PdfViewerProps) {
     const [numPages, setNumPages] = useState<number | null>(null);
     const [pageNumber, setPageNumber] = useState(1);
+    const [viewMode, setViewMode] = useState<ViewMode>('single');
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
 
@@ -110,32 +115,51 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             <CardHeader className="flex-shrink-0">
                 <div className="flex items-center justify-between">
                     <CardTitle>PDF Viewer</CardTitle>
-                    {numPages && (
-                        <div className="flex items-center gap-2">
-                            <Button
-                                disabled={pageNumber <= 1}
-                                size="sm"
-                                variant="outline"
-                                onClick={goToPrevPage}
-                            >
-                                Previous
-                            </Button>
+                    <div className="flex items-center gap-4">
+                        {numPages && viewMode === 'single' && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    disabled={pageNumber <= 1}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={goToPrevPage}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="text-muted-foreground text-sm">
+                                    Page {pageNumber} of {numPages}
+                                </span>
+                                <Button
+                                    disabled={pageNumber >= numPages}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={goToNextPage}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        )}
+                        {numPages && viewMode === 'all' && (
                             <span className="text-muted-foreground text-sm">
-                                Page {pageNumber} of {numPages}
+                                {numPages} {numPages === 1 ? 'page' : 'pages'}
                             </span>
-                            <Button
-                                disabled={pageNumber >= numPages}
+                        )}
+                        <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground text-xs">Single page</span>
+                            <Switch
+                                aria-label="Toggle view mode"
+                                isSelected={viewMode === 'all'}
                                 size="sm"
-                                variant="outline"
-                                onClick={goToNextPage}
-                            >
-                                Next
-                            </Button>
+                                onValueChange={(isSelected) => {
+                                    setViewMode(isSelected ? 'all' : 'single');
+                                }}
+                            />
+                            <span className="text-muted-foreground text-xs">All pages</span>
                         </div>
-                    )}
+                    </div>
                 </div>
             </CardHeader>
-            <CardContent className="flex flex-1 items-center justify-center overflow-auto p-4">
+            <CardContent className="flex flex-1 flex-col overflow-auto p-4">
                 {error ? (
                     <div className="text-destructive text-center">
                         <p>{error}</p>
@@ -151,12 +175,25 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                 onLoadError={onDocumentLoadError}
                                 onLoadSuccess={onDocumentLoadSuccess}
                             >
-                                <Page
-                                    className="max-w-full"
-                                    pageNumber={pageNumber}
-                                    renderAnnotationLayer={true}
-                                    renderTextLayer={true}
-                                />
+                                {viewMode === 'single' ? (
+                                    <Page
+                                        className="max-w-full"
+                                        pageNumber={pageNumber}
+                                        renderAnnotationLayer={true}
+                                        renderTextLayer={true}
+                                    />
+                                ) : (
+                                    numPages &&
+                                    Array.from(new Array(numPages), (el, index) => (
+                                        <Page
+                                            key={`page_${index + 1}`}
+                                            className="max-w-full"
+                                            pageNumber={index + 1}
+                                            renderAnnotationLayer={true}
+                                            renderTextLayer={true}
+                                        />
+                                    ))
+                                )}
                             </Document>
                         </div>
                     )
