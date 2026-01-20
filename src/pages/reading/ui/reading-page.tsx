@@ -1,9 +1,9 @@
 'use client';
 
-import { useSettingsStore } from '@/entities/settings';
-
 import { FileSelector } from './file-selector';
 import { PdfViewer } from './pdf-viewer';
+
+import { useSettingsStore } from '@/entities/settings';
 
 export function ReadingPage() {
     const selectedPdfPath = useSettingsStore((state) => state.selectedPdfPath);
@@ -16,7 +16,7 @@ export function ReadingPage() {
     return (
         <div className="flex h-screen w-full gap-4 p-4">
             <div className="w-80 flex-shrink-0">
-                <FileSelector onFileSelect={handleFileSelect} selectedFilePath={selectedPdfPath} />
+                <FileSelector selectedFilePath={selectedPdfPath} onFileSelect={handleFileSelect} />
             </div>
             <div className="min-w-0 flex-1">
                 <PdfViewer filePath={selectedPdfPath} />
