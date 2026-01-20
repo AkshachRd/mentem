@@ -73,11 +73,11 @@ export function Learn() {
                 />
                 <ShowAnswerButton
                     disabled={revealBack}
+                    onClick={() => {
+                        setRevealBack(true);
+                    }}
                     onCountDown={() => {
                         setRevealBack(false);
-                    }}
-                    onPress={() => {
-                        setRevealBack(true);
                     }}
                 />
             </div>

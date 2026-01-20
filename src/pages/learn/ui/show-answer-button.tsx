@@ -1,18 +1,18 @@
 'use client';
 
-import { Button, CircularProgress } from '@heroui/react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { FC, useEffect, useRef, useState } from 'react';
-import { PressEvent } from 'react-aria';
+
+import { Button } from '@/shared/ui/button';
 
 interface ShowAnswerButtonProps {
-    onPress?: (e: PressEvent) => void;
+    onClick?: () => void;
     onCountDown?: () => void;
     disabled?: boolean;
 }
 
-export const ShowAnswerButton: FC<ShowAnswerButtonProps> = ({ onPress, disabled, onCountDown }) => {
+export const ShowAnswerButton: FC<ShowAnswerButtonProps> = ({ onClick, disabled, onCountDown }) => {
     const [mounted, setMounted] = useState(false);
     const [value, setValue] = useState(100);
     const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -54,27 +54,16 @@ export const ShowAnswerButton: FC<ShowAnswerButtonProps> = ({ onPress, disabled,
 
     return (
         <Button
-            disableRipple
             className={clsx(
-                'border-background text-background data-[hover=true]:bg-background data-[hover=true]:text-foreground',
+                'border-background data-[hover=true]:bg-background data-[hover=true]:text-foreground',
                 mounted && {
                     light: theme === 'dark',
                     dark: theme === 'light',
                 },
             )}
             disabled={disabled}
-            isLoading={disabled}
-            spinner={
-                <CircularProgress
-                    aria-label="Loading..."
-                    color="default"
-                    size="sm"
-                    strokeWidth={4}
-                    value={value}
-                />
-            }
-            variant="bordered"
-            onPress={onPress}
+            variant="outline"
+            onClick={onClick}
         >
             Show answer
         </Button>
