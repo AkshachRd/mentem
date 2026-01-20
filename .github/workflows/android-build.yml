@@ -24,7 +24,9 @@ jobs:
           targets: aarch64-linux-android, armv7-linux-androideabi
 
       - name: Install Frontend Dependencies
-        run: npm install
+        run: |
+          npm cache clean --force
+          npm install --legacy-peer-deps
 
       - name: Build APK
         uses: tauri-apps/tauri-action@v0
