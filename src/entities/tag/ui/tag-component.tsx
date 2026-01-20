@@ -1,7 +1,8 @@
 'use client';
-import { Chip } from '@heroui/react';
 
 import { TagColor } from '../model/types';
+
+import { Badge } from '@/shared/ui/badge';
 
 type TagComponentProps = {
     color?: TagColor;
@@ -11,8 +12,8 @@ type TagComponentProps = {
 
 export const TagComponent = ({ children, onClose, color }: TagComponentProps) => {
     return (
-        <Chip className="cursor-pointer" color={color} variant="dot" onClose={onClose}>
+        <Badge className="cursor-pointer" color={color} variant="outline" onClick={onClose}>
             {children}
-        </Chip>
+        </Badge>
     );
 };
