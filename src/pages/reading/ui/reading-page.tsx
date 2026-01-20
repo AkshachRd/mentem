@@ -1,24 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useSettingsStore } from '@/entities/settings';
 
 import { FileSelector } from './file-selector';
 import { PdfViewer } from './pdf-viewer';
 
 export function ReadingPage() {
-    const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
+    const selectedPdfPath = useSettingsStore((state) => state.selectedPdfPath);
+    const setSelectedPdfPath = useSettingsStore((state) => state.setSelectedPdfPath);
 
     const handleFileSelect = (filePath: string) => {
-        setSelectedFilePath(filePath);
+        setSelectedPdfPath(filePath);
     };
 
     return (
         <div className="flex h-screen w-full gap-4 p-4">
             <div className="w-80 flex-shrink-0">
-                <FileSelector onFileSelect={handleFileSelect} />
+                <FileSelector onFileSelect={handleFileSelect} selectedFilePath={selectedPdfPath} />
             </div>
             <div className="min-w-0 flex-1">
-                <PdfViewer filePath={selectedFilePath} />
+                <PdfViewer filePath={selectedPdfPath} />
             </div>
         </div>
     );

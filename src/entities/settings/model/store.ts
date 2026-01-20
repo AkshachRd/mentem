@@ -8,10 +8,12 @@ export type SettingsState = {
     compactTables: boolean;
     aiModel: AiModelPreference;
     destinationDir: string | null;
+    selectedPdfPath: string | null;
     setEnableAnimations: (value: boolean) => void;
     setCompactTables: (value: boolean) => void;
     setAiModel: (value: AiModelPreference) => void;
     setDestinationDir: (path: string | null) => void;
+    setSelectedPdfPath: (path: string | null) => void;
     reset: () => void;
 };
 
@@ -20,6 +22,7 @@ const defaultState = {
     compactTables: false,
     aiModel: 'auto' as AiModelPreference,
     destinationDir: null as string | null,
+    selectedPdfPath: null as string | null,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -30,6 +33,7 @@ export const useSettingsStore = create<SettingsState>()(
             setCompactTables: (value) => set(() => ({ compactTables: value })),
             setAiModel: (value) => set(() => ({ aiModel: value })),
             setDestinationDir: (path) => set(() => ({ destinationDir: path })),
+            setSelectedPdfPath: (path) => set(() => ({ selectedPdfPath: path })),
             reset: () => set(() => ({ ...defaultState })),
         }),
         {

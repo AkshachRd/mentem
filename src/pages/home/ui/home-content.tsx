@@ -1,13 +1,12 @@
 'use client';
 
-import { Tab, Tabs } from '@heroui/react';
-
 import { CardsList } from './cards-list';
 import { ContentTable } from './content-table';
 import { MemoriesList } from './memories-list';
 
 import { TagComponent } from '@/entities/tag';
 import { useTagsStore } from '@/entities/tag';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs';
 
 type HomeContentProps = {
     selectedTagIds: string[];
@@ -17,14 +16,20 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
     const { tags } = useTagsStore();
 
     return (
-        <Tabs aria-label="Options" className="w-full" variant="underlined">
-            <Tab key="cards" title="cards">
+        <Tabs defaultValue="cards" className="w-full">
+            <TabsList variant="line">
+                <TabsTrigger value="cards">cards</TabsTrigger>
+                <TabsTrigger value="notes">notes</TabsTrigger>
+                <TabsTrigger value="tags">tags</TabsTrigger>
+                <TabsTrigger value="table">table</TabsTrigger>
+            </TabsList>
+            <TabsContent value="cards">
                 <CardsList selectedTagIds={selectedTagIds} />
-            </Tab>
-            <Tab key="notes" title="notes">
+            </TabsContent>
+            <TabsContent value="notes">
                 <MemoriesList selectedTagIds={selectedTagIds} />
-            </Tab>
-            <Tab key="tags" title="tags">
+            </TabsContent>
+            <TabsContent value="tags">
                 <div className="flex flex-wrap justify-center gap-2">
                     {tags.map((tag) => (
                         <TagComponent key={tag.id} color={tag.color}>
@@ -32,10 +37,10 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
                         </TagComponent>
                     ))}
                 </div>
-            </Tab>
-            <Tab key="table" className="w-full" title="table">
+            </TabsContent>
+            <TabsContent value="table" className="w-full">
                 <ContentTable />
-            </Tab>
+            </TabsContent>
         </Tabs>
     );
 };

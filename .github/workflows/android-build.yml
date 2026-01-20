@@ -1,0 +1,51 @@
+name: Build Android APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
+
+      - name: Install NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27
+          add-to-path: true
+
+      - name: Install Frontend Dependencies
+        # CHANGED: 'npm install' (instead of ci) forces it to read package.json
+        # This ensures @tauri-apps/cli is installed even if package-lock.json is old
+        run: npm install
+
+      - name: Build APK
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        # CHANGED: Using npx, and removed the '--apk' flag that caused the previous crash
+        run: npx tauri android build --target aarch64-linux-android
+
+      - name: Upload APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-android-apk
+          # Capture all APKs generated
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
