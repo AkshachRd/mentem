@@ -22,6 +22,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          # We still need the FULL targets installed for Rust
           targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
 
       - name: Install NDK
@@ -32,14 +33,14 @@ jobs:
           add-to-path: true
 
       - name: Install Frontend Dependencies
-        # FIXED: Added --legacy-peer-deps to bypass the @heroui conflict crashing npm
-        run: npm install --legacy-peer-deps
+        # Added --no-audit --no-fund to make it lighter/more stable
+        run: npm install --legacy-peer-deps --no-audit --no-fund
 
       - name: Build APK
         env:
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        # FIXED: Explicitly tell npx to use @tauri-apps/cli package to run the 'tauri' command
-        run: npx --package @tauri-apps/cli tauri android build --target aarch64-linux-android
+        # FIXED: Changed '--target aarch64-linux-android' to '--target aarch64'
+        run: npx --package @tauri-apps/cli tauri android build --target aarch64
 
       - name: Upload APK
         if: always()
