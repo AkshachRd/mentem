@@ -1,16 +1,6 @@
 'use client';
 
-import {
-    ModalContent,
-    ModalBody,
-    Divider,
-    Button,
-    Input,
-    Textarea,
-    Card,
-    CardBody,
-    addToast,
-} from '@heroui/react';
+import { Divider, Button, Input, Textarea, Card, CardBody, addToast } from '@heroui/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -22,9 +12,10 @@ import { useTagsStore } from '@/entities/tag';
 
 type NoteMemoryModalProps = {
     memory?: NoteMemory;
+    onClose: () => void;
 };
 
-export function NoteMemoryModal({ memory }: NoteMemoryModalProps) {
+export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
     const isEditing = Boolean(memory);
 
     const { addMemory, updateMemory } = useMemoriesStore();
@@ -110,90 +101,81 @@ export function NoteMemoryModal({ memory }: NoteMemoryModalProps) {
     const isSaveDisabled = content.trim().length === 0;
 
     return (
-        <ModalContent>
-            {(onClose) => (
-                <ModalBody>
-                    <div className="flex h-[600px]">
-                        <div className="flex flex-1 flex-col gap-3 p-2">
+        <div className="flex h-[600px]">
+            <div className="flex flex-1 flex-col gap-3 p-2">
+                <Input
+                    label={'Title'}
+                    placeholder="Optional title"
+                    value={title}
+                    onInput={(e) => setTitle(e.currentTarget.value)}
+                />
+                <Textarea
+                    label={'TL;DR'}
+                    minRows={2}
+                    placeholder="Optional short summary"
+                    value={tldr}
+                    onInput={(e) => setTldr(e.currentTarget.value)}
+                />
+                <div className="min-h-0 grow">
+                    <Textarea
+                        className="h-full"
+                        label={'Content'}
+                        minRows={10}
+                        placeholder="Write your note..."
+                        value={content}
+                        onInput={(e) => setContent(e.currentTarget.value)}
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        color="primary"
+                        isDisabled={isSaveDisabled}
+                        onPress={() => handleSave(onClose)}
+                    >
+                        {isEditing ? 'Save changes' : 'Create note'}
+                    </Button>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+            <Divider orientation="vertical" />
+            <div className="flex w-80 flex-col gap-4 p-4">
+                <Card className="w-full">
+                    <CardBody className="flex-row flex-wrap items-center gap-2">
+                        {selectedTags.map((tag) => (
+                            <TagComponent
+                                key={tag.id}
+                                color={tag.color}
+                                onClose={() => handleRemoveSelectedTag(tag.id)}
+                            >
+                                {tag.name}
+                            </TagComponent>
+                        ))}
+                        <div className="flex grow flex-row gap-2">
                             <Input
-                                label={'Title'}
-                                placeholder="Optional title"
-                                value={title}
-                                onInput={(e) => setTitle(e.currentTarget.value)}
+                                className="grow"
+                                fullWidth={false}
+                                placeholder="Add tag by name"
+                                value={tagInput}
+                                onInput={(e) => setTagInput(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && tagInput.trim().length > 0) {
+                                        handleAddTagByName();
+                                    }
+                                }}
                             />
-                            <Textarea
-                                label={'TL;DR'}
-                                minRows={2}
-                                placeholder="Optional short summary"
-                                value={tldr}
-                                onInput={(e) => setTldr(e.currentTarget.value)}
-                            />
-                            <div className="min-h-0 grow">
-                                <Textarea
-                                    className="h-full"
-                                    label={'Content'}
-                                    minRows={10}
-                                    placeholder="Write your note..."
-                                    value={content}
-                                    onInput={(e) => setContent(e.currentTarget.value)}
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    color="primary"
-                                    isDisabled={isSaveDisabled}
-                                    onPress={() => handleSave(onClose)}
-                                >
-                                    {isEditing ? 'Save changes' : 'Create note'}
-                                </Button>
-                                <Button color="danger" variant="light" onPress={onClose}>
-                                    Cancel
-                                </Button>
-                            </div>
+                            <Button
+                                isDisabled={tagInput.trim().length === 0}
+                                type="button"
+                                onPress={handleAddTagByName}
+                            >
+                                Add
+                            </Button>
                         </div>
-                        <Divider orientation="vertical" />
-                        <div className="flex w-80 flex-col gap-4 p-4">
-                            <Card className="w-full">
-                                <CardBody className="flex-row flex-wrap items-center gap-2">
-                                    {selectedTags.map((tag) => (
-                                        <TagComponent
-                                            key={tag.id}
-                                            color={tag.color}
-                                            onClose={() => handleRemoveSelectedTag(tag.id)}
-                                        >
-                                            {tag.name}
-                                        </TagComponent>
-                                    ))}
-                                    <div className="flex grow flex-row gap-2">
-                                        <Input
-                                            className="grow"
-                                            fullWidth={false}
-                                            placeholder="Add tag by name"
-                                            value={tagInput}
-                                            onInput={(e) => setTagInput(e.currentTarget.value)}
-                                            onKeyDown={(e) => {
-                                                if (
-                                                    e.key === 'Enter' &&
-                                                    tagInput.trim().length > 0
-                                                ) {
-                                                    handleAddTagByName();
-                                                }
-                                            }}
-                                        />
-                                        <Button
-                                            isDisabled={tagInput.trim().length === 0}
-                                            type="button"
-                                            onPress={handleAddTagByName}
-                                        >
-                                            Add
-                                        </Button>
-                                    </div>
-                                </CardBody>
-                            </Card>
-                        </div>
-                    </div>
-                </ModalBody>
-            )}
-        </ModalContent>
+                    </CardBody>
+                </Card>
+            </div>
+        </div>
     );
 }
