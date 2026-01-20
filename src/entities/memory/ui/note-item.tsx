@@ -1,6 +1,7 @@
 'use client';
 
-import { Card, CardBody, CardHeader, Divider, useDisclosure } from '@heroui/react';
+import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
+import { useState } from 'react';
 
 import { NoteMemory } from '../model/types';
 
@@ -14,13 +15,13 @@ type NoteItemProps = {
 };
 
 export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [dialogOpen, setDialogOpen] = useState(false);
     const title = memory.title ?? 'Untitled note';
     const tldr = memory.tldr;
 
     return (
         <>
-            <Card isPressable className="w-[380px]" shadow="lg" onPress={onOpen}>
+            <Card isPressable className="w-[380px]" shadow="lg" onPress={() => setDialogOpen(true)}>
                 <CardHeader className="flex flex-col items-start gap-1">
                     {tldr && <div className="text-tiny text-default-500">{tldr}</div>}
                     <div className="text-large font-semibold">{title}</div>
@@ -41,9 +42,9 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
                 </CardBody>
             </Card>
 
-            <Dialog open={isOpen} onOpenChange={onClose}>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
-                    <NoteMemoryModal memory={memory} onClose={onClose} />
+                    <NoteMemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
         </>

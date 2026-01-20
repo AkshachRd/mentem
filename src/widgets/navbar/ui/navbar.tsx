@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useDisclosure } from '@heroui/react';
+import { useState } from 'react';
 
 import { siteConfig } from '@/shared/config';
 import { ThemeSwitch } from '@/shared/ui/theme-switch';
@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/di
 import { SettingsTab } from '@/pages/home/ui/settings-tab';
 
 export const Navbar = () => {
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
     return (
         <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
@@ -38,13 +38,13 @@ export const Navbar = () => {
 
                 <div className="flex flex-1 items-center justify-end gap-2">
                     <ThemeSwitch />
-                    <Button size="sm" variant="ghost" onClick={onOpen}>
+                    <Button size="sm" variant="ghost" onClick={() => setSettingsDialogOpen(true)}>
                         settings
                     </Button>
                 </div>
             </div>
 
-            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Settings</DialogTitle>

@@ -6,7 +6,6 @@ import {
     TableColumn,
     TableHeader,
     TableRow,
-    useDisclosure,
 } from '@heroui/react';
 import { useState } from 'react';
 
@@ -19,7 +18,7 @@ import { Dialog, DialogContent } from '@/shared/ui/dialog';
 export function CardsTable() {
     const { cards } = useCardStore();
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    const [cardModalOpen, setCardModalOpen] = useState(false);
 
     return (
         <>
@@ -41,7 +40,7 @@ export function CardsTable() {
                                     size="md"
                                     onPress={() => {
                                         setSelectedCard(card);
-                                        onModalOpen();
+                                        setCardModalOpen(true);
                                     }}
                                 >
                                     <WidenIcon />
@@ -51,9 +50,14 @@ export function CardsTable() {
                     )}
                 </TableBody>
             </Table>
-            <Dialog open={isModalOpen} onOpenChange={onModalClose}>
+            <Dialog open={cardModalOpen} onOpenChange={setCardModalOpen}>
                 <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
-                    {selectedCard && <CardItemModal card={selectedCard} onClose={onModalClose} />}
+                    {selectedCard && (
+                        <CardItemModal
+                            card={selectedCard}
+                            onClose={() => setCardModalOpen(false)}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
         </>

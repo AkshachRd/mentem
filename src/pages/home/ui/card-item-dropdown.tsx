@@ -1,12 +1,6 @@
-import {
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    cn,
-    useDisclosure,
-} from '@heroui/react';
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, cn } from '@heroui/react';
 import { useHover } from 'react-aria';
+import { useState } from 'react';
 
 import {
     AddNoteIcon,
@@ -25,14 +19,10 @@ interface CardItemDropdownProps {
 const iconClasses = 'text-xl text-default-500 pointer-events-none shrink-0';
 
 export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
-    const {
-        isOpen: isDropdownOpen,
-        onOpen: onDropdownOpen,
-        onClose: onDropdownClose,
-    } = useDisclosure();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { hoverProps: cardHoverProps, isHovered: isCardHovered } = useHover({
-        onHoverStart: onDropdownOpen,
-        onHoverEnd: debounce(onDropdownClose, 300),
+        onHoverStart: () => setIsDropdownOpen(true),
+        onHoverEnd: debounce(() => setIsDropdownOpen(false), 300),
     });
     const { hoverProps: menuHoverProps, isHovered: isMenuHovered } = useHover({});
 
@@ -47,7 +37,7 @@ export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
                     className="w-full"
                     {...cardHoverProps}
                     onClick={() => {
-                        onDropdownClose();
+                        setIsDropdownOpen(false);
                         onModalOpen();
                     }}
                 >

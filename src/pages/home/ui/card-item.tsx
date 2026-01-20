@@ -1,6 +1,6 @@
 'use client';
 
-import { useDisclosure } from '@heroui/react';
+import { useState } from 'react';
 
 import { CardItemDropdown } from './card-item-dropdown';
 import { CardItemModal } from './card-item-modal';
@@ -13,15 +13,15 @@ interface CardItemProps {
 }
 
 export function CardItem({ card }: CardItemProps) {
-    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    const [cardModalOpen, setCardModalOpen] = useState(false);
 
     return (
         <>
-            <CardItemDropdown card={card} onModalOpen={onModalOpen} />
+            <CardItemDropdown card={card} onModalOpen={() => setCardModalOpen(true)} />
 
-            <Dialog open={isModalOpen} onOpenChange={onModalClose}>
+            <Dialog open={cardModalOpen} onOpenChange={setCardModalOpen}>
                 <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
-                    <CardItemModal card={card} onClose={onModalClose} />
+                    <CardItemModal card={card} onClose={() => setCardModalOpen(false)} />
                 </DialogContent>
             </Dialog>
         </>
