@@ -2,6 +2,8 @@ import './styles/globals.css';
 import { Metadata, Viewport } from 'next';
 import clsx from 'clsx';
 
+import { Toaster } from '../shared/ui/sonner';
+
 import { Providers } from './providers';
 
 import { siteConfig } from '@/shared/config';
@@ -43,6 +45,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                             {children}
                         </main>
                     </div>
+                    <Toaster />
                 </Providers>
             </body>
         </html>

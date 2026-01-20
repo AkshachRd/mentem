@@ -8,6 +8,8 @@ import { Switch } from '@heroui/react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
+import { toast } from 'sonner';
+
 import { PdfTextContextMenu } from './pdf-text-context-menu';
 
 import { Button } from '@/shared/ui/button';
@@ -94,6 +96,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             };
 
             addMemory(newMemory);
+            toast.success('Note created', {
+                description: `From ${fileName} (Page ${pageNumber})`,
+            });
             clearSelection();
         },
         [filePath, pageNumber, clearSelection, addMemory],
