@@ -32,20 +32,18 @@ jobs:
           add-to-path: true
 
       - name: Install Frontend Dependencies
-        # CHANGED: 'npm install' (instead of ci) forces it to read package.json
-        # This ensures @tauri-apps/cli is installed even if package-lock.json is old
-        run: npm install
+        # FIXED: Added --legacy-peer-deps to bypass the @heroui conflict crashing npm
+        run: npm install --legacy-peer-deps
 
       - name: Build APK
         env:
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        # CHANGED: Using npx, and removed the '--apk' flag that caused the previous crash
-        run: npx tauri android build --target aarch64-linux-android
+        # FIXED: Explicitly tell npx to use @tauri-apps/cli package to run the 'tauri' command
+        run: npx --package @tauri-apps/cli tauri android build --target aarch64-linux-android
 
       - name: Upload APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tauri-android-apk
-          # Capture all APKs generated
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
