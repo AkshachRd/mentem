@@ -172,7 +172,7 @@ export const ForwardLogo = (props: IconSvgProps) => {
         >
             <path
                 d="M19.5 12L14.5 17M19.5 12L14.5 7M19.5 12L9.5 12C7.83333 12 4.5 11 4.5 7"
-                stroke="black"
+                stroke="white"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="1.5"
@@ -192,7 +192,7 @@ export const CloseLogo = (props: IconSvgProps) => {
             {...props}
         >
             <line
-                stroke="black"
+                stroke="white"
                 strokeLinecap="round"
                 strokeWidth="1.5"
                 x1="6"
@@ -201,7 +201,7 @@ export const CloseLogo = (props: IconSvgProps) => {
                 y2="18"
             />
             <line
-                stroke="black"
+                stroke="white"
                 strokeLinecap="round"
                 strokeWidth="1.5"
                 x1="6"

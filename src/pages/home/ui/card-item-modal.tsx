@@ -1,11 +1,11 @@
 'use client';
 
-import { Button, Divider } from '@heroui/react';
-
 import { TagInput } from './tag-input';
 
 import { Card, CardComponent } from '@/entities/card';
 import { useTagsStore } from '@/entities/tag';
+import { Button } from '@/shared/ui/button';
+import { Separator } from '@/shared/ui/separator';
 
 interface CardItemModalProps {
     card: Card;
@@ -25,10 +25,10 @@ export function CardItemModal({ card, onClose }: CardItemModalProps) {
                     revealBack={true}
                 />
             </div>
-            <Divider orientation="vertical" />
+            <Separator orientation="vertical" />
             <div className="flex w-80 flex-col gap-4 p-4">
                 <TagInput card={card} tags={cardTags} />
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button variant="destructive" onClick={onClose}>
                     Close
                 </Button>
             </div>

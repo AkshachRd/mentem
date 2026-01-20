@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, Button, Input, Textarea, Card, CardBody, addToast } from '@heroui/react';
+import { Input, Textarea, Card, CardBody, addToast } from '@heroui/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -9,6 +9,8 @@ import { NoteMemory } from '../model/types';
 
 import { TagComponent } from '@/entities/tag';
 import { useTagsStore } from '@/entities/tag';
+import { Button } from '@/shared/ui/button';
+import { Separator } from '@/shared/ui/separator';
 
 type NoteMemoryModalProps = {
     memory?: NoteMemory;
@@ -127,19 +129,15 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                     />
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                        color="primary"
-                        isDisabled={isSaveDisabled}
-                        onPress={() => handleSave(onClose)}
-                    >
+                    <Button disabled={isSaveDisabled} onClick={() => handleSave(onClose)}>
                         {isEditing ? 'Save changes' : 'Create note'}
                     </Button>
-                    <Button color="danger" variant="light" onPress={onClose}>
+                    <Button variant="destructive" onClick={onClose}>
                         Cancel
                     </Button>
                 </div>
             </div>
-            <Divider orientation="vertical" />
+            <Separator orientation="vertical" />
             <div className="flex w-80 flex-col gap-4 p-4">
                 <Card className="w-full">
                     <CardBody className="flex-row flex-wrap items-center gap-2">
@@ -166,9 +164,8 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                                 }}
                             />
                             <Button
-                                isDisabled={tagInput.trim().length === 0}
-                                type="button"
-                                onPress={handleAddTagByName}
+                                disabled={tagInput.trim().length === 0}
+                                onClick={handleAddTagByName}
                             >
                                 Add
                             </Button>

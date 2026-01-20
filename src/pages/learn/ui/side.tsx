@@ -1,8 +1,9 @@
 'use client';
 
-import { Button } from '@heroui/react';
 import clsx from 'clsx';
 import { FC, ReactNode } from 'react';
+
+import { Button } from '@/shared/ui/button';
 
 interface SideProps {
     children?: ReactNode;
@@ -31,7 +32,7 @@ export const Side: FC<SideProps> = ({
             />
             <Button
                 className={`bg-background h-full w-full data-[hover=true]:bg-${color}/20`}
-                variant="light"
+                variant="default"
             >
                 {children}
             </Button>

@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Input, Button } from '@heroui/react';
+import { Input } from '@heroui/react';
 import { useRef, useState } from 'react';
 
 import { ForwardLogo, CloseLogo } from '@/shared/ui/icons';
+import { Button } from '@/shared/ui/button';
 
 interface CardCreationFormProps {
     frontSide: string;
@@ -38,7 +39,7 @@ export const CardCreationForm = ({ frontSide, onCancel, onCreate }: CardCreation
                     initial={{ x: '-100%' }}
                     transition={{ type: 'tween', delay: 0.2 }}
                 >
-                    <Button isIconOnly radius="full" size="md" onPress={() => onCreate(backSide)}>
+                    <Button className="size-8" variant="outline" onClick={() => onCreate(backSide)}>
                         <ForwardLogo />
                     </Button>
                 </motion.div>
@@ -49,7 +50,7 @@ export const CardCreationForm = ({ frontSide, onCancel, onCreate }: CardCreation
                     initial={{ x: '100%', y: 0 }}
                     transition={{ type: 'tween' }}
                 >
-                    <Button isIconOnly radius="full" size="md" onPress={onCancel}>
+                    <Button className="size-8" variant="outline" onClick={onCancel}>
                         <CloseLogo />
                     </Button>
                 </motion.div>

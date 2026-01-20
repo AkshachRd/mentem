@@ -3,8 +3,8 @@
 import type { StreamableValue } from 'ai/rsc';
 
 import { useState } from 'react';
-import { addToast } from '@heroui/react';
 import { readStreamableValue } from 'ai/rsc';
+import { toast } from 'sonner';
 
 import { useTaskStore } from '../model/store';
 
@@ -29,10 +29,8 @@ function removeJsonMarkdown(text: string) {
 export function handleError(error: unknown) {
     const errorMessage = parseError(error);
 
-    addToast({
-        title: 'Deep search error',
-        description: errorMessage,
-        color: 'danger',
+    toast.error(errorMessage, {
+        description: 'Something went wrong while generating questions.',
     });
 }
 

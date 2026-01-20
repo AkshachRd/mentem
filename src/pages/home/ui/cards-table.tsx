@@ -1,12 +1,4 @@
-import {
-    Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableColumn,
-    TableHeader,
-    TableRow,
-} from '@heroui/react';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { useState } from 'react';
 
 import { CardItemModal } from './card-item-modal';
@@ -14,6 +6,7 @@ import { CardItemModal } from './card-item-modal';
 import { Card, useCardStore } from '@/entities/card';
 import { WidenIcon } from '@/shared/ui/icons';
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
 
 export function CardsTable() {
     const { cards } = useCardStore();
@@ -35,10 +28,9 @@ export function CardsTable() {
                             <TableCell>{card.backSide}</TableCell>
                             <TableCell>
                                 <Button
-                                    isIconOnly
-                                    radius="full"
-                                    size="md"
-                                    onPress={() => {
+                                    className="size-8"
+                                    variant="outline"
+                                    onClick={() => {
                                         setSelectedCard(card);
                                         setCardModalOpen(true);
                                     }}

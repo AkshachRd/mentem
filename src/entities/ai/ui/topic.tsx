@@ -1,12 +1,14 @@
 'use client';
 
-import { Form, Button, Textarea } from '@heroui/react';
+import { Form, Textarea } from '@heroui/react';
 import React, { FormEvent, useState } from 'react';
 
 import { useTaskStore } from '../model/store';
 
 import { useDeepResearch } from './use-deep-research';
 import { AIAnimationWrapper } from './ai-animation-wrapper';
+
+import { Button } from '@/shared/ui/button';
 
 export function Topic() {
     const { askQuestions } = useDeepResearch();
@@ -40,7 +42,7 @@ export function Topic() {
                         placeholder="Any topic you want to research"
                         rows={3}
                     />
-                    <Button fullWidth type="submit">
+                    <Button className="w-full" type="submit">
                         Start thinking
                     </Button>
                     {questions && (

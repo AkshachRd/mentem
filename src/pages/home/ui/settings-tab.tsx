@@ -1,11 +1,12 @@
 'use client';
 
-import { Button, Card, CardBody } from '@heroui/react';
+import { Card, CardBody } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/react';
-import { Switch } from '@heroui/react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { useSettingsStore } from '@/entities/settings/model/store';
+import { Switch } from '@/shared/ui/switch';
+import { Button } from '@/shared/ui/button';
 
 export function SettingsTab() {
     const enableAnimations = useSettingsStore((s) => s.enableAnimations);
@@ -31,8 +32,8 @@ export function SettingsTab() {
                         </div>
                         <Switch
                             aria-label="Enable animations"
-                            isSelected={enableAnimations}
-                            onValueChange={setEnableAnimations}
+                            checked={enableAnimations}
+                            onCheckedChange={setEnableAnimations}
                         />
                     </div>
 
@@ -45,8 +46,8 @@ export function SettingsTab() {
                         </div>
                         <Switch
                             aria-label="Compact tables"
-                            isSelected={compactTables}
-                            onValueChange={setCompactTables}
+                            checked={compactTables}
+                            onCheckedChange={setCompactTables}
                         />
                     </div>
 
@@ -85,9 +86,9 @@ export function SettingsTab() {
                         </div>
                         <Button
                             aria-label="Choose destination folder"
-                            size="sm"
-                            variant="flat"
-                            onPress={async () => {
+                            className="size-8"
+                            variant="outline"
+                            onClick={async () => {
                                 try {
                                     const selected = await open({
                                         directory: true,
