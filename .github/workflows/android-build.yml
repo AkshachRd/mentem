@@ -25,26 +25,28 @@ jobs:
           targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
 
       - name: Install NDK
+        id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r27
           add-to-path: true
 
       - name: Install Frontend Dependencies
-        # 'npm ci' is faster and more reliable for CI than 'npm install'
+        # npm ci is cleaner for CI environments
         run: npm ci
 
       - name: Build APK
         env:
+          # This connects the NDK installed in the previous step
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        # We use npx to ensure the binary is found
-        run: npx tauri android build --apk --target aarch64-linux-android
+        # --package @tauri-apps/cli tells npx specifically where to find the 'tauri' executable
+        run: npx --package @tauri-apps/cli tauri android build --apk --target aarch64-linux-android
 
       - name: Upload APK
+        if: always() # Upload logs/artifacts even if build fails (for debugging)
         uses: actions/upload-artifact@v4
         with:
           name: tauri-android-apk
-          # Adjust this path if your tauri config outputs elsewhere
-          # Usually: src-tauri/gen/android/app/build/outputs/apk/universal/debug
-          # Or specifically for arm64:
-          path: src-tauri/gen/android/app/build/outputs/apk/universal/debug/*.apk
+          # Adjust path to match where Tauri v2 outputs files
+          path: |
+             src-tauri/gen/android/app/build/outputs/apk/**/*.apk
