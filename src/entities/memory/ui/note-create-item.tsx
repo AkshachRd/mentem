@@ -1,9 +1,11 @@
 'use client';
 
-import { Card, CardBody, Modal, useDisclosure } from '@heroui/react';
+import { Card, CardBody, useDisclosure } from '@heroui/react';
 import { Plus } from 'lucide-react';
 
 import { NoteMemoryModal } from './note-memory-modal';
+
+import { Dialog, DialogContent } from '@/shared/ui/dialog';
 
 export function NoteCreateItem() {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -22,9 +24,11 @@ export function NoteCreateItem() {
                 </CardBody>
             </Card>
 
-            <Modal isOpen={isOpen} size="5xl" onClose={onClose}>
-                <NoteMemoryModal />
-            </Modal>
+            <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
+                    <NoteMemoryModal onClose={onClose} />
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
