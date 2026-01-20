@@ -1,6 +1,5 @@
 name: Build Android APK
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,32 +11,39 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
+          cache: 'npm' # Helps speed up builds
+          
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android, armv7-linux-androideabi
+          targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
+          
+      - name: Install NDK
+        # Sometimes required explicitly if not found by Tauri automatically
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
 
       - name: Install Frontend Dependencies
-        run: |
-          npm cache clean --force
-          npm install --legacy-peer-deps
-
+        # Changed to npm ci for reliability
+        run: npm ci
+        
       - name: Build APK
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Ensure the NDK path is recognized
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         with:
           args: --target aarch64-linux-android
-
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: tauri-android-apk
           path: src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
-          
