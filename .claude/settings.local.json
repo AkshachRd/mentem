@@ -4,7 +4,8 @@
       "mcp__acp__Write",
       "mcp__acp__Edit",
       "mcp__acp__Bash",
-      "mcp__shadcn__get_audit_checklist"
+      "mcp__shadcn__get_audit_checklist",
+      "mcp__shadcn__search_items_in_registries"
     ]
   }
 }

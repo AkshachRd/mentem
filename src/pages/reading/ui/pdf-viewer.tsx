@@ -14,6 +14,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { useTextSelection } from '@/shared/lib/hooks';
+import { useMemoriesStore } from '@/entities/memory';
 
 // Настройка worker для pdfjs
 // Используем версию из react-pdf (5.4.296)
@@ -49,6 +50,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     // Text selection for context menu
     const { getSelectedText, clearSelection } = useTextSelection();
 
+    // Memories store for adding notes
+    const addMemory = useMemoriesStore((state) => state.addMemory);
+
     // Context menu action handlers
     const handleCopy = useCallback(
         async (text: string) => {
@@ -73,13 +77,26 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
     const handleAddNote = useCallback(
         (text: string) => {
-            // TODO: Integration with entities/memory system
-            // For now, log the selected text
-            // eslint-disable-next-line no-console
-            console.log('Add note with text:', text, 'from file:', filePath, 'page:', pageNumber);
+            if (!text) return;
+
+            // Extract filename from path
+            const fileName = filePath ? filePath.split(/[\\/]/).pop() || 'PDF' : 'PDF';
+
+            // Create a new note memory with the selected text
+            const newMemory = {
+                id: crypto.randomUUID(),
+                kind: 'note' as const,
+                content: text,
+                title: `From ${fileName} (Page ${pageNumber})`,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                tagIds: [],
+            };
+
+            addMemory(newMemory);
             clearSelection();
         },
-        [filePath, pageNumber, clearSelection],
+        [filePath, pageNumber, clearSelection, addMemory],
     );
 
     const handleHighlight = useCallback(
