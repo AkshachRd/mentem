@@ -10,6 +10,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
+import { ScrollArea } from '@/shared/ui/scroll-area';
 
 // Настройка worker для pdfjs
 // Используем версию из react-pdf (5.4.296)
@@ -37,7 +38,8 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const [pageWidth, setPageWidth] = useState<number | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [savedFitScale, setSavedFitScale] = useState<number | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLElement | null>(null);
+    const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
 
@@ -66,6 +68,39 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const onPageLoadSuccess = useCallback((page: { width: number; height: number }) => {
         setPageWidth(page.width);
     }, []);
+
+    // Привязка containerRef к viewport ScrollArea
+    useEffect(() => {
+        const updateViewportRef = () => {
+            if (scrollAreaContainerRef.current) {
+                const viewport = scrollAreaContainerRef.current.querySelector(
+                    '[data-slot="scroll-area-viewport"]',
+                ) as HTMLElement;
+
+                if (viewport) {
+                    containerRef.current = viewport;
+                }
+            }
+        };
+
+        // Небольшая задержка для того, чтобы ScrollArea успел смонтироваться
+        const timeoutId = setTimeout(updateViewportRef, 0);
+
+        // Также обновляем при изменении содержимого
+        const observer = new MutationObserver(updateViewportRef);
+
+        if (scrollAreaContainerRef.current) {
+            observer.observe(scrollAreaContainerRef.current, {
+                childList: true,
+                subtree: true,
+            });
+        }
+
+        return () => {
+            clearTimeout(timeoutId);
+            observer.disconnect();
+        };
+    }, [viewMode, numPages, fileUrl]);
 
     // Отслеживание размера контейнера
     useLayoutEffect(() => {
@@ -449,58 +484,64 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent ref={containerRef} className="flex flex-1 flex-col overflow-auto p-4">
-                {error ? (
-                    <div className="text-destructive text-center">
-                        <p>{error}</p>
-                    </div>
-                ) : (
-                    fileUrl && (
-                        <div className="flex flex-col items-center gap-4">
-                            <Document
-                                file={fileUrl}
-                                loading={
-                                    <div className="text-muted-foreground">Loading PDF...</div>
-                                }
-                                onLoadError={onDocumentLoadError}
-                                onLoadSuccess={onDocumentLoadSuccess}
-                            >
-                                {viewMode === 'single' ? (
-                                    <Page
-                                        className="max-w-full"
-                                        pageNumber={pageNumber}
-                                        renderAnnotationLayer={true}
-                                        renderTextLayer={true}
-                                        scale={scale}
-                                        onLoadSuccess={onPageLoadSuccess}
-                                    />
-                                ) : (
-                                    numPages &&
-                                    Array.from(new Array(numPages), (el, index) => {
-                                        const pageNum = index + 1;
-
-                                        return (
-                                            <div
-                                                key={`page_${pageNum}`}
-                                                className="flex justify-center"
-                                                data-page-number={pageNum}
-                                            >
-                                                <Page
-                                                    className="max-w-full"
-                                                    pageNumber={pageNum}
-                                                    renderAnnotationLayer={true}
-                                                    renderTextLayer={true}
-                                                    scale={scale}
-                                                    onLoadSuccess={onPageLoadSuccess}
-                                                />
+            <CardContent className="flex flex-1 flex-col overflow-hidden p-4">
+                <div ref={scrollAreaContainerRef} className="min-h-0 flex-1">
+                    <ScrollArea className="h-full w-full">
+                        {error ? (
+                            <div className="text-destructive text-center">
+                                <p>{error}</p>
+                            </div>
+                        ) : (
+                            fileUrl && (
+                                <div className="flex flex-col items-center gap-4 p-4">
+                                    <Document
+                                        file={fileUrl}
+                                        loading={
+                                            <div className="text-muted-foreground">
+                                                Loading PDF...
                                             </div>
-                                        );
-                                    })
-                                )}
-                            </Document>
-                        </div>
-                    )
-                )}
+                                        }
+                                        onLoadError={onDocumentLoadError}
+                                        onLoadSuccess={onDocumentLoadSuccess}
+                                    >
+                                        {viewMode === 'single' ? (
+                                            <Page
+                                                className="max-w-full"
+                                                pageNumber={pageNumber}
+                                                renderAnnotationLayer={true}
+                                                renderTextLayer={true}
+                                                scale={scale}
+                                                onLoadSuccess={onPageLoadSuccess}
+                                            />
+                                        ) : (
+                                            numPages &&
+                                            Array.from(new Array(numPages), (el, index) => {
+                                                const pageNum = index + 1;
+
+                                                return (
+                                                    <div
+                                                        key={`page_${pageNum}`}
+                                                        className="flex justify-center"
+                                                        data-page-number={pageNum}
+                                                    >
+                                                        <Page
+                                                            className="max-w-full"
+                                                            pageNumber={pageNum}
+                                                            renderAnnotationLayer={true}
+                                                            renderTextLayer={true}
+                                                            scale={scale}
+                                                            onLoadSuccess={onPageLoadSuccess}
+                                                        />
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </Document>
+                                </div>
+                            )
+                        )}
+                    </ScrollArea>
+                </div>
             </CardContent>
         </Card>
     );
