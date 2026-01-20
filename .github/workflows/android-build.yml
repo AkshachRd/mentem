@@ -32,21 +32,19 @@ jobs:
           add-to-path: true
 
       - name: Install Frontend Dependencies
-        # npm ci is cleaner for CI environments
         run: npm ci
 
       - name: Build APK
         env:
-          # This connects the NDK installed in the previous step
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        # --package @tauri-apps/cli tells npx specifically where to find the 'tauri' executable
-        run: npx --package @tauri-apps/cli tauri android build --apk --target aarch64-linux-android
+        # 1. Removed '--apk' (It caused the crash and is default for debug builds)
+        # 2. Used ./node_modules/.bin/tauri directly to use your installed version
+        run: ./node_modules/.bin/tauri android build --target aarch64-linux-android
 
       - name: Upload APK
-        if: always() # Upload logs/artifacts even if build fails (for debugging)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tauri-android-apk
-          # Adjust path to match where Tauri v2 outputs files
           path: |
              src-tauri/gen/android/app/build/outputs/apk/**/*.apk
