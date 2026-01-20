@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { Button } from '@/shared/ui/button';
@@ -8,11 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/car
 
 type FileSelectorProps = {
     onFileSelect: (filePath: string) => void;
+    selectedFilePath: string | null;
 };
 
-export function FileSelector({ onFileSelect }: FileSelectorProps) {
-    const [selectedFile, setSelectedFile] = useState<string | null>(null);
-
+export function FileSelector({ onFileSelect, selectedFilePath }: FileSelectorProps) {
     const handleSelectFile = async () => {
         try {
             const selected = await open({
@@ -26,7 +24,6 @@ export function FileSelector({ onFileSelect }: FileSelectorProps) {
             });
 
             if (typeof selected === 'string') {
-                setSelectedFile(selected);
                 onFileSelect(selected);
             }
         } catch (error) {
@@ -43,14 +40,14 @@ export function FileSelector({ onFileSelect }: FileSelectorProps) {
                 <Button className="w-full" onClick={handleSelectFile}>
                     Choose PDF File
                 </Button>
-                {selectedFile && (
+                {selectedFilePath && (
                     <div className="text-muted-foreground text-xs break-words">
                         <div className="mb-1 font-medium">Selected:</div>
-                        <div className="truncate" title={selectedFile}>
-                            {selectedFile.split(/[/\\]/).pop()}
+                        <div className="truncate" title={selectedFilePath}>
+                            {selectedFilePath.split(/[/\\]/).pop()}
                         </div>
-                        <div className="mt-1 truncate text-xs opacity-70" title={selectedFile}>
-                            {selectedFile}
+                        <div className="mt-1 truncate text-xs opacity-70" title={selectedFilePath}>
+                            {selectedFilePath}
                         </div>
                     </div>
                 )}
