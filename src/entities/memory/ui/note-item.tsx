@@ -3,6 +3,7 @@
 import { Card, CardBody, CardHeader, Divider, Modal, useDisclosure } from '@heroui/react';
 
 import { NoteMemory } from '../model/types';
+
 import { NoteMemoryModal } from './note-memory-modal';
 
 type NoteItemProps = {
@@ -17,7 +18,7 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
 
     return (
         <>
-            <Card className="w-[380px]" isPressable onPress={onOpen} shadow="lg">
+            <Card isPressable className="w-[380px]" shadow="lg" onPress={onOpen}>
                 <CardHeader className="flex flex-col items-start gap-1">
                     {tldr && <div className="text-tiny text-default-500">{tldr}</div>}
                     <div className="text-large font-semibold">{title}</div>

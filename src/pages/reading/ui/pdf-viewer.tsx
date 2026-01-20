@@ -8,9 +8,12 @@ import { Switch } from '@heroui/react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
+import { PdfTextContextMenu } from './pdf-text-context-menu';
+
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import { useTextSelection } from '@/shared/lib/hooks';
 
 // Настройка worker для pdfjs
 // Используем версию из react-pdf (5.4.296)
@@ -42,6 +45,64 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+    // Text selection for context menu
+    const { getSelectedText, clearSelection } = useTextSelection();
+
+    // Context menu action handlers
+    const handleCopy = useCallback(
+        async (text: string) => {
+            if (!text) return;
+
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+            clearSelection();
+        },
+        [clearSelection],
+    );
+
+    const handleAddNote = useCallback(
+        (text: string) => {
+            // TODO: Integration with entities/memory system
+            // For now, log the selected text
+            // eslint-disable-next-line no-console
+            console.log('Add note with text:', text, 'from file:', filePath, 'page:', pageNumber);
+            clearSelection();
+        },
+        [filePath, pageNumber, clearSelection],
+    );
+
+    const handleHighlight = useCallback(
+        (text: string, color: string) => {
+            // TODO: Store highlight annotation with position data
+            // For now, log the action
+            // eslint-disable-next-line no-console
+            console.log('Highlight:', text, 'with color:', color);
+            clearSelection();
+        },
+        [clearSelection],
+    );
+
+    const handleSearch = useCallback(
+        (text: string) => {
+            // TODO: Implement search in document functionality
+            // For now, log the action
+            // eslint-disable-next-line no-console
+            console.log('Search for:', text);
+            clearSelection();
+        },
+        [clearSelection],
+    );
 
     // Функция для расчета масштаба page fit
     const calculatePageFit = useCallback(() => {
@@ -493,51 +554,59 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                             </div>
                         ) : (
                             fileUrl && (
-                                <div className="flex flex-col items-center gap-4 p-4">
-                                    <Document
-                                        file={fileUrl}
-                                        loading={
-                                            <div className="text-muted-foreground">
-                                                Loading PDF...
-                                            </div>
-                                        }
-                                        onLoadError={onDocumentLoadError}
-                                        onLoadSuccess={onDocumentLoadSuccess}
-                                    >
-                                        {viewMode === 'single' ? (
-                                            <Page
-                                                className="max-w-full"
-                                                pageNumber={pageNumber}
-                                                renderAnnotationLayer={true}
-                                                renderTextLayer={true}
-                                                scale={scale}
-                                                onLoadSuccess={onPageLoadSuccess}
-                                            />
-                                        ) : (
-                                            numPages &&
-                                            Array.from(new Array(numPages), (el, index) => {
-                                                const pageNum = index + 1;
+                                <PdfTextContextMenu
+                                    getSelectedText={getSelectedText}
+                                    onAddNote={handleAddNote}
+                                    onCopy={handleCopy}
+                                    onHighlight={handleHighlight}
+                                    onSearch={handleSearch}
+                                >
+                                    <div className="flex flex-col items-center gap-4 p-4">
+                                        <Document
+                                            file={fileUrl}
+                                            loading={
+                                                <div className="text-muted-foreground">
+                                                    Loading PDF...
+                                                </div>
+                                            }
+                                            onLoadError={onDocumentLoadError}
+                                            onLoadSuccess={onDocumentLoadSuccess}
+                                        >
+                                            {viewMode === 'single' ? (
+                                                <Page
+                                                    className="max-w-full"
+                                                    pageNumber={pageNumber}
+                                                    renderAnnotationLayer={true}
+                                                    renderTextLayer={true}
+                                                    scale={scale}
+                                                    onLoadSuccess={onPageLoadSuccess}
+                                                />
+                                            ) : (
+                                                numPages &&
+                                                Array.from(new Array(numPages), (el, index) => {
+                                                    const pageNum = index + 1;
 
-                                                return (
-                                                    <div
-                                                        key={`page_${pageNum}`}
-                                                        className="flex justify-center"
-                                                        data-page-number={pageNum}
-                                                    >
-                                                        <Page
-                                                            className="max-w-full"
-                                                            pageNumber={pageNum}
-                                                            renderAnnotationLayer={true}
-                                                            renderTextLayer={true}
-                                                            scale={scale}
-                                                            onLoadSuccess={onPageLoadSuccess}
-                                                        />
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </Document>
-                                </div>
+                                                    return (
+                                                        <div
+                                                            key={`page_${pageNum}`}
+                                                            className="flex justify-center"
+                                                            data-page-number={pageNum}
+                                                        >
+                                                            <Page
+                                                                className="max-w-full"
+                                                                pageNumber={pageNum}
+                                                                renderAnnotationLayer={true}
+                                                                renderTextLayer={true}
+                                                                scale={scale}
+                                                                onLoadSuccess={onPageLoadSuccess}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </Document>
+                                    </div>
+                                </PdfTextContextMenu>
                             )
                         )}
                     </ScrollArea>

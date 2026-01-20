@@ -40,16 +40,16 @@ export function FileSelector({ onFileSelect }: FileSelectorProps) {
                 <CardTitle>Select PDF File</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-                <Button onClick={handleSelectFile} className="w-full">
+                <Button className="w-full" onClick={handleSelectFile}>
                     Choose PDF File
                 </Button>
                 {selectedFile && (
-                    <div className="text-xs text-muted-foreground break-words">
-                        <div className="font-medium mb-1">Selected:</div>
+                    <div className="text-muted-foreground text-xs break-words">
+                        <div className="mb-1 font-medium">Selected:</div>
                         <div className="truncate" title={selectedFile}>
                             {selectedFile.split(/[/\\]/).pop()}
                         </div>
-                        <div className="text-xs opacity-70 mt-1 truncate" title={selectedFile}>
+                        <div className="mt-1 truncate text-xs opacity-70" title={selectedFile}>
                             {selectedFile}
                         </div>
                     </div>

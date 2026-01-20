@@ -37,7 +37,7 @@ export const Navbar = () => {
             <NavbarContent className="hidden basis-1/5 sm:flex sm:basis-full" justify="end">
                 <NavbarItem className="hidden gap-2 sm:flex">
                     <ThemeSwitch />
-                    <Button onPress={onOpen} size="sm" variant="light">
+                    <Button size="sm" variant="light" onPress={onOpen}>
                         settings
                     </Button>
                 </NavbarItem>
@@ -49,7 +49,7 @@ export const Navbar = () => {
 
             <NavbarContent className="basis-1 pl-4 sm:hidden" justify="end">
                 <ThemeSwitch />
-                <Button onPress={onOpen} size="sm" variant="light">
+                <Button size="sm" variant="light" onPress={onOpen}>
                     settings
                 </Button>
             </NavbarContent>
@@ -74,7 +74,7 @@ export const Navbar = () => {
                     ))}
                 </div>
             </NavbarMenu>
-            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg">
+            <Modal isOpen={isOpen} size="lg" onOpenChange={onOpenChange}>
                 <ModalContent>
                     {(close) => (
                         <>
