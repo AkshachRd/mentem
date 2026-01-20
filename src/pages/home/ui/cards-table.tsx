@@ -1,4 +1,3 @@
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { useState } from 'react';
 
 import { CardItemModal } from './card-item-modal';
@@ -7,6 +6,7 @@ import { Card, useCardStore } from '@/entities/card';
 import { WidenIcon } from '@/shared/ui/icons';
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Button } from '@/shared/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 
 export function CardsTable() {
     const { cards } = useCardStore();
@@ -15,14 +15,16 @@ export function CardsTable() {
 
     return (
         <>
-            <Table aria-label="List of cards" selectionMode="multiple">
+            <Table>
                 <TableHeader>
-                    <TableColumn>FRONT</TableColumn>
-                    <TableColumn>BACK</TableColumn>
-                    <TableColumn width="1fr">WIDEN</TableColumn>
+                    <TableRow>
+                        <TableHead>FRONT</TableHead>
+                        <TableHead>BACK</TableHead>
+                        <TableHead>WIDEN</TableHead>
+                    </TableRow>
                 </TableHeader>
-                <TableBody items={cards}>
-                    {(card) => (
+                <TableBody>
+                    {cards.map((card) => (
                         <TableRow key={card.id}>
                             <TableCell>{card.frontSide}</TableCell>
                             <TableCell>{card.backSide}</TableCell>
@@ -39,7 +41,7 @@ export function CardsTable() {
                                 </Button>
                             </TableCell>
                         </TableRow>
-                    )}
+                    ))}
                 </TableBody>
             </Table>
             <Dialog open={cardModalOpen} onOpenChange={setCardModalOpen}>
