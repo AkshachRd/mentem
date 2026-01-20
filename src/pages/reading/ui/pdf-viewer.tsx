@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { invoke } from '@tauri-apps/api/core';
-import { Switch } from '@heroui/react';
+
+import { Switch } from '@/shared/ui/switch';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -515,10 +516,10 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                 <span className="text-muted-foreground text-xs">Single page</span>
                                 <Switch
                                     aria-label="Toggle view mode"
-                                    isSelected={viewMode === 'all'}
+                                    checked={viewMode === 'all'}
                                     size="sm"
-                                    onValueChange={(isSelected) => {
-                                        setViewMode(isSelected ? 'all' : 'single');
+                                    onCheckedChange={(checked) => {
+                                        setViewMode(checked ? 'all' : 'single');
                                     }}
                                 />
                                 <span className="text-muted-foreground text-xs">All pages</span>
