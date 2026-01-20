@@ -1,12 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Modal, ModalBody, ModalContent, ModalHeader } from '@heroui/react';
 import { useDisclosure } from '@heroui/react';
 
 import { siteConfig } from '@/shared/config';
 import { ThemeSwitch } from '@/shared/ui/theme-switch';
-import { SettingsTab } from '@/pages/home/ui/settings-tab';
 import {
     NavigationMenu,
     NavigationMenuList,
@@ -15,6 +13,8 @@ import {
     navigationMenuTriggerStyle,
 } from '@/shared/ui/navigation-menu';
 import { Button } from '@/shared/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { SettingsTab } from '@/pages/home/ui/settings-tab';
 
 export const Navbar = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -44,18 +44,14 @@ export const Navbar = () => {
                 </div>
             </div>
 
-            <Modal isOpen={isOpen} size="lg" onOpenChange={onOpenChange}>
-                <ModalContent>
-                    {() => (
-                        <>
-                            <ModalHeader>settings</ModalHeader>
-                            <ModalBody>
-                                <SettingsTab />
-                            </ModalBody>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Settings</DialogTitle>
+                    </DialogHeader>
+                    <SettingsTab />
+                </DialogContent>
+            </Dialog>
         </header>
     );
 };
