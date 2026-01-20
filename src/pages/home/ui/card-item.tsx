@@ -19,7 +19,7 @@ export function CardItem({ card }: CardItemProps) {
             <CardItemDropdown card={card} onModalOpen={onModalOpen} />
 
             <Modal isOpen={isModalOpen} size="5xl" onClose={onModalClose}>
-                <CardItemModal card={card} />
+                <CardItemModal card={card} onClose={onModalClose} />
             </Modal>
         </>
     );

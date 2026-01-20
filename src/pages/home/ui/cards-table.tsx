@@ -1,6 +1,5 @@
 import {
     Button,
-    Modal,
     Table,
     TableBody,
     TableCell,
@@ -15,6 +14,7 @@ import { CardItemModal } from './card-item-modal';
 
 import { Card, useCardStore } from '@/entities/card';
 import { WidenIcon } from '@/shared/ui/icons';
+import { Dialog, DialogContent } from '@/shared/ui/dialog';
 
 export function CardsTable() {
     const { cards } = useCardStore();
@@ -51,9 +51,11 @@ export function CardsTable() {
                     )}
                 </TableBody>
             </Table>
-            <Modal isOpen={isModalOpen} size="5xl" onClose={onModalClose}>
-                {selectedCard && <CardItemModal card={selectedCard} />}
-            </Modal>
+            <Dialog open={isModalOpen} onOpenChange={onModalClose}>
+                <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
+                    {selectedCard && <CardItemModal card={selectedCard} onClose={onModalClose} />}
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
