@@ -4,12 +4,27 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { gsap } from 'gsap';
 
 const useMedia = (queries: string[], values: number[], defaultValue: number): number => {
-    const get = () => values[queries.findIndex((q) => matchMedia(q).matches)] ?? defaultValue;
+    const get = () => {
+        // Check if we're in a browser environment
+        if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') {
+            return defaultValue;
+        }
 
-    const [value, setValue] = useState<number>(get);
+        return values[queries.findIndex((q) => matchMedia(q).matches)] ?? defaultValue;
+    };
+
+    const [value, setValue] = useState<number>(defaultValue);
 
     useEffect(() => {
-        const handler = () => setValue(get);
+        // Only run in browser
+        if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') {
+            return;
+        }
+
+        // Set initial value
+        setValue(get());
+
+        const handler = () => setValue(get());
 
         queries.forEach((q) => matchMedia(q).addEventListener('change', handler));
 
@@ -95,6 +110,7 @@ export function Masonry<TItem>({
 
     const [containerRef, { width }] = useMeasure<HTMLDivElement>();
     const [forcedWidth, setForcedWidth] = useState<number | null>(null);
+    const [isMounted, setIsMounted] = useState(false);
 
     useLayoutEffect(() => {
         // Force an initial width based on parent or viewport to avoid 0×0 on first paint
@@ -105,6 +121,7 @@ export function Masonry<TItem>({
         } else if (typeof window !== 'undefined') {
             setForcedWidth(Math.max(window.innerWidth - 32, 320));
         }
+        setIsMounted(true);
     }, []);
 
     const getInitialPosition = (item: GridItem) => {
@@ -266,11 +283,18 @@ export function Masonry<TItem>({
         );
     }, [items, getItemHeight, layout.columnW]);
 
+    // Don't render until mounted to avoid hydration mismatch
+    if (!isMounted) {
+        return (
+            <div ref={containerRef} className="relative w-full" style={{ minHeight: '400px' }} />
+        );
+    }
+
     return (
         <div
             ref={containerRef}
             className="relative w-full"
-            style={{ height: layout.containerHeight || fallbackHeight }}
+            style={{ height: Math.max(0, layout.containerHeight || fallbackHeight) }}
         >
             {layout.grid.map((item, index) => {
                 const data = items[index];
