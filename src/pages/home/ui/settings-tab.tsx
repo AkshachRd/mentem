@@ -1,12 +1,12 @@
 'use client';
 
-import { Select, SelectItem } from '@heroui/react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { useSettingsStore } from '@/entities/settings/model/store';
 import { Switch } from '@/shared/ui/switch';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 
 export function SettingsTab() {
     const enableAnimations = useSettingsStore((s) => s.enableAnimations);
@@ -26,7 +26,7 @@ export function SettingsTab() {
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">Enable animations</span>
-                            <span className="text-foreground-500 text-xs">
+                            <span className="text-muted-foreground text-xs">
                                 Toggle UI animations and motion effects
                             </span>
                         </div>
@@ -40,7 +40,7 @@ export function SettingsTab() {
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">Compact tables</span>
-                            <span className="text-foreground-500 text-xs">
+                            <span className="text-muted-foreground text-xs">
                                 Reduce padding and row height in tables
                             </span>
                         </div>
@@ -54,33 +54,34 @@ export function SettingsTab() {
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">AI model preference</span>
-                            <span className="text-foreground-500 text-xs">
+                            <span className="text-muted-foreground text-xs">
                                 Choose the default model behavior for AI tasks
                             </span>
                         </div>
                         <Select
-                            aria-label="AI model preference"
-                            className="max-w-xs"
-                            selectedKeys={[aiModel]}
-                            onSelectionChange={(keys) => {
-                                const value = Array.from(keys)[0] as 'auto' | 'thinking' | 'flesh';
-
-                                setAiModel(value);
+                            value={aiModel}
+                            onValueChange={(value) => {
+                                setAiModel(value as 'auto' | 'thinking' | 'flesh');
                             }}
                         >
-                            <SelectItem key="auto">Auto</SelectItem>
-                            <SelectItem key="thinking">Thinking</SelectItem>
-                            <SelectItem key="flesh">Flesh</SelectItem>
+                            <SelectTrigger aria-label="AI model preference" className="max-w-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="auto">Auto</SelectItem>
+                                <SelectItem value="thinking">Thinking</SelectItem>
+                                <SelectItem value="flesh">Flesh</SelectItem>
+                            </SelectContent>
                         </Select>
                     </div>
 
                     <div className="flex items-center justify-between">
                         <div className="flex max-w-md flex-col">
                             <span className="text-sm font-medium">Destination folder</span>
-                            <span className="text-foreground-500 text-xs">
+                            <span className="text-muted-foreground text-xs">
                                 Choose where Mentem will store exported or generated files
                             </span>
-                            <span className="text-foreground-500 truncate text-xs">
+                            <span className="text-muted-foreground truncate text-xs">
                                 {destinationDir ?? 'Not set'}
                             </span>
                         </div>
