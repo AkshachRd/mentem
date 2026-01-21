@@ -6,7 +6,7 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shar
 
 export function StudyCard() {
     return (
-        <Card className="relative mx-auto w-full max-w-sm pt-0" size="default">
+        <Card className="relative w-full max-w-sm pt-0" size="default">
             <div className="bg-primary absolute inset-0 z-30 aspect-video opacity-50 mix-blend-color" />
             {/* <img
                 alt="Photo by mymind on Unsplash"
