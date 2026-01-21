@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, CardBody, Input } from '@heroui/react';
+import { Card, CardBody } from '@heroui/react';
 import { FC } from 'react';
 
 import { useGenerateTags } from '../../../pages/home/model/use-generate-tags';
@@ -11,6 +11,8 @@ import { AIAnimationWrapper } from '@/entities/ai';
 import { Card as CardType } from '@/entities/card';
 import { Tag } from '@/entities/tag';
 import { TagComponent } from '@/entities/tag';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface TagInputProps {
     tags: Tag[];
@@ -70,23 +72,23 @@ export const TagInput: FC<TagInputProps> = ({ tags, card }: TagInputProps) => {
                         </TagComponent>
                     ))}
                     {showGenButton && (
-                        <Button type="button" onPress={() => generateTags(card)}>
+                        <Button type="button" onClick={() => generateTags(card)}>
                             Gen tags
                         </Button>
                     )}
                     {showStopButton && (
-                        <Button type="button" onPress={stopGeneration}>
+                        <Button type="button" onClick={stopGeneration}>
                             Stop
                         </Button>
                     )}
                     {showSaveAndCancelButton && (
                         <div className="grow flex-row gap-2">
-                            <Button type="button" onPress={handleSaveGeneratedTags}>
+                            <Button type="button" onClick={handleSaveGeneratedTags}>
                                 Save
                             </Button>
                             <Button
                                 type="button"
-                                onPress={() => {
+                                onClick={() => {
                                     clearCompletion();
                                     setShowSaveAndCancelButton(false);
                                 }}
@@ -99,7 +101,6 @@ export const TagInput: FC<TagInputProps> = ({ tags, card }: TagInputProps) => {
                         {showInput && (
                             <Input
                                 className="grow"
-                                fullWidth={false}
                                 placeholder="Enter tags"
                                 value={input}
                                 onInput={(e) => setInput(e.currentTarget.value)}
@@ -111,7 +112,7 @@ export const TagInput: FC<TagInputProps> = ({ tags, card }: TagInputProps) => {
                             />
                         )}
                         {showAddTagButton && (
-                            <Button type="button" onPress={handleAddManualTags}>
+                            <Button type="button" onClick={handleAddManualTags}>
                                 Add
                             </Button>
                         )}

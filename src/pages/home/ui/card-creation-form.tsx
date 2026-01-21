@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-import { Input } from '@heroui/react';
 import { useRef, useState } from 'react';
 
 import { ForwardLogo, CloseLogo } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface CardCreationFormProps {
     frontSide: string;
@@ -26,11 +26,10 @@ export const CardCreationForm = ({ frontSide, onCancel, onCreate }: CardCreation
             <div className="relative">
                 <Input
                     ref={inputRef}
+                    className="rounded-full"
                     placeholder="Back side"
-                    radius="full"
                     value={backSide}
-                    variant="bordered"
-                    onValueChange={setBackSide}
+                    onChange={(e) => setBackSide(e.target.value)}
                 />
                 <motion.div
                     animate={{ x: 0 }}

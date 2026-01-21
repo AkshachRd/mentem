@@ -1,6 +1,6 @@
 'use client';
 
-import { Input, Textarea, Card, CardBody } from '@heroui/react';
+import { Card, CardBody } from '@heroui/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -12,6 +12,9 @@ import { TagComponent } from '@/entities/tag';
 import { useTagsStore } from '@/entities/tag';
 import { Button } from '@/shared/ui/button';
 import { Separator } from '@/shared/ui/separator';
+import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
+import { Field, FieldLabel } from '@/shared/ui/field';
 
 type NoteMemoryModalProps = {
     memory?: NoteMemory;
@@ -106,29 +109,33 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
     return (
         <div className="flex h-[600px]">
             <div className="flex flex-1 flex-col gap-3 p-2">
-                <Input
-                    label={'Title'}
-                    placeholder="Optional title"
-                    value={title}
-                    onInput={(e) => setTitle(e.currentTarget.value)}
-                />
-                <Textarea
-                    label={'TL;DR'}
-                    minRows={2}
-                    placeholder="Optional short summary"
-                    value={tldr}
-                    onInput={(e) => setTldr(e.currentTarget.value)}
-                />
-                <div className="min-h-0 grow">
+                <Field>
+                    <FieldLabel>Title</FieldLabel>
+                    <Input
+                        placeholder="Optional title"
+                        value={title}
+                        onInput={(e) => setTitle(e.currentTarget.value)}
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>TL;DR</FieldLabel>
                     <Textarea
-                        className="h-full"
-                        label={'Content'}
-                        minRows={10}
+                        placeholder="Optional short summary"
+                        rows={2}
+                        value={tldr}
+                        onInput={(e) => setTldr(e.currentTarget.value)}
+                    />
+                </Field>
+                <Field className="min-h-0 grow">
+                    <FieldLabel>Content</FieldLabel>
+                    <Textarea
+                        className="h-full resize-none"
                         placeholder="Write your note..."
+                        rows={10}
                         value={content}
                         onInput={(e) => setContent(e.currentTarget.value)}
                     />
-                </div>
+                </Field>
                 <div className="flex gap-2">
                     <Button disabled={isSaveDisabled} onClick={() => handleSave(onClose)}>
                         {isEditing ? 'Save changes' : 'Create note'}
@@ -154,7 +161,6 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                         <div className="flex grow flex-row gap-2">
                             <Input
                                 className="grow"
-                                fullWidth={false}
                                 placeholder="Add tag by name"
                                 value={tagInput}
                                 onInput={(e) => setTagInput(e.currentTarget.value)}

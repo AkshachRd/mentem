@@ -22,6 +22,7 @@
         "@radix-ui/react-slot": "^1.2.4",
         "@react-aria/ssr": "3.9.7",
         "@react-aria/visually-hidden": "3.8.18",
+        "@tanstack/react-form": "^1.27.7",
         "@tauri-apps/api": "^2.9.1",
         "@tauri-apps/plugin-deep-link": "^2.4.5",
         "@tauri-apps/plugin-dialog": "^2.4.2",
