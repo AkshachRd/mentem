@@ -1,12 +1,12 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { useSettingsStore } from '@/entities/settings/model/store';
 import { Switch } from '@/shared/ui/switch';
 import { Button } from '@/shared/ui/button';
+import { Card, CardContent } from '@/shared/ui/card';
 
 export function SettingsTab() {
     const enableAnimations = useSettingsStore((s) => s.enableAnimations);
@@ -22,7 +22,7 @@ export function SettingsTab() {
     return (
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
             <Card>
-                <CardBody className="gap-4">
+                <CardContent className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col">
                             <span className="text-sm font-medium">Enable animations</span>
@@ -106,7 +106,7 @@ export function SettingsTab() {
                             Choose folder
                         </Button>
                     </div>
-                </CardBody>
+                </CardContent>
             </Card>
 
             <div className="flex justify-end">

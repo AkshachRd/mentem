@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,6 +14,7 @@ import { Separator } from '@/shared/ui/separator';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Field, FieldLabel } from '@/shared/ui/field';
+import { Card, CardContent } from '@/shared/ui/card';
 
 type NoteMemoryModalProps = {
     memory?: NoteMemory;
@@ -148,7 +148,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
             <Separator orientation="vertical" />
             <div className="flex w-80 flex-col gap-4 p-4">
                 <Card className="w-full">
-                    <CardBody className="flex-row flex-wrap items-center gap-2">
+                    <CardContent className="flex flex-row flex-wrap items-center gap-2">
                         {selectedTags.map((tag) => (
                             <TagComponent
                                 key={tag.id}
@@ -177,7 +177,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                                 Add
                             </Button>
                         </div>
-                    </CardBody>
+                    </CardContent>
                 </Card>
             </div>
         </div>

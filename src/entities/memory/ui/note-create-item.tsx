@@ -1,12 +1,12 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 
 import { NoteMemoryModal } from './note-memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
+import { Card, CardContent } from '@/shared/ui/card';
 
 export function NoteCreateItem() {
     const [noteCreateModalOpen, setNoteCreateModalOpen] = useState(false);
@@ -14,15 +14,13 @@ export function NoteCreateItem() {
     return (
         <>
             <Card
-                isPressable
-                className="border-default-300 w-[380px] border-dashed"
-                shadow="sm"
-                onPress={() => setNoteCreateModalOpen(true)}
+                className="w-[380px] cursor-pointer border-2 border-dashed"
+                onClick={() => setNoteCreateModalOpen(true)}
             >
-                <CardBody className="text-default-500 flex h-40 items-center justify-center gap-3">
+                <CardContent className="text-muted-foreground flex h-40 items-center justify-center gap-3">
                     <Plus size={18} />
                     <span>Create note</span>
-                </CardBody>
+                </CardContent>
             </Card>
 
             <Dialog open={noteCreateModalOpen} onOpenChange={setNoteCreateModalOpen}>

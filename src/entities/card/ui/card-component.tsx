@@ -1,10 +1,10 @@
-import { Card, CardFooter, CardHeader } from '@heroui/react';
 import clsx from 'clsx';
 import { FC } from 'react';
 import { Spoiler } from 'spoiled';
 
 import { IBMPlexSerif } from '@/shared/config';
 import { Separator } from '@/shared/ui/separator';
+import { Card, CardHeader, CardFooter } from '@/shared/ui/card';
 
 interface CardComponentProps {
     headerContent?: string;
@@ -20,13 +20,12 @@ export const CardComponent: FC<CardComponentProps> = ({
     className,
 }) => {
     return (
-        <Card
-            className={clsx('w-[380px] font-serif', IBMPlexSerif.variable, className)}
-            shadow="lg"
-        >
-            <CardHeader className="h-28 justify-center text-xl">{headerContent}</CardHeader>
+        <Card className={clsx('w-[380px] font-serif', IBMPlexSerif.variable, className)}>
+            <CardHeader className="flex h-28 items-center justify-center text-xl">
+                {headerContent}
+            </CardHeader>
             <Separator />
-            <CardFooter className="h-28 justify-center text-xl">
+            <CardFooter className="flex h-28 items-center justify-center text-xl">
                 <Spoiler fps={16} hidden={!revealBack}>
                     {footerContent}
                 </Spoiler>

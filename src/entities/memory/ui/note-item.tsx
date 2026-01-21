@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardBody, CardHeader } from '@heroui/react';
 import { useState } from 'react';
 
 import { NoteMemory } from '../model/types';
@@ -9,6 +8,7 @@ import { NoteMemoryModal } from './note-memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Separator } from '@/shared/ui/separator';
+import { Card, CardHeader, CardContent } from '@/shared/ui/card';
 
 type NoteItemProps = {
     memory: NoteMemory;
@@ -22,13 +22,13 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
 
     return (
         <>
-            <Card isPressable className="w-[380px]" shadow="lg" onPress={() => setDialogOpen(true)}>
+            <Card className="w-[380px] cursor-pointer" onClick={() => setDialogOpen(true)}>
                 <CardHeader className="flex flex-col items-start gap-1">
-                    {tldr && <div className="text-tiny text-default-500">{tldr}</div>}
-                    <div className="text-large font-semibold">{title}</div>
+                    {tldr && <div className="text-muted-foreground text-xs">{tldr}</div>}
+                    <div className="text-lg font-semibold">{title}</div>
                 </CardHeader>
                 <Separator />
-                <CardBody>
+                <CardContent>
                     <div
                         className="text-base leading-6 whitespace-pre-wrap"
                         style={{
@@ -40,7 +40,7 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
                     >
                         {memory.content}
                     </div>
-                </CardBody>
+                </CardContent>
             </Card>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

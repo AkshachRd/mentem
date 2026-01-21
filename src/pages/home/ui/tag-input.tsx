@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
 import { FC } from 'react';
 
 import { useGenerateTags } from '../../../pages/home/model/use-generate-tags';
@@ -13,6 +12,7 @@ import { Tag } from '@/entities/tag';
 import { TagComponent } from '@/entities/tag';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Card, CardContent } from '@/shared/ui/card';
 
 interface TagInputProps {
     tags: Tag[];
@@ -61,7 +61,7 @@ export const TagInput: FC<TagInputProps> = ({ tags, card }: TagInputProps) => {
     return (
         <AIAnimationWrapper isLoading={isLoading}>
             <Card className="w-full">
-                <CardBody className="flex-row flex-wrap items-center gap-2">
+                <CardContent className="flex flex-row flex-wrap items-center gap-2">
                     {mergedTags.map((tag, index) => (
                         <TagComponent
                             key={index}
@@ -117,7 +117,7 @@ export const TagInput: FC<TagInputProps> = ({ tags, card }: TagInputProps) => {
                             </Button>
                         )}
                     </div>
-                </CardBody>
+                </CardContent>
             </Card>
         </AIAnimationWrapper>
     );
