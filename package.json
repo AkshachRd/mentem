@@ -12,7 +12,7 @@
     },
     "dependencies": {
         "@ai-sdk/react": "^1.2.5",
-        "@base-ui/react": "^1.0.0",
+        "@base-ui/react": "^1.1.0",
         "@heroui/react": "^2.8.0",
         "@heroui/system": "2.4.19",
         "@heroui/theme": "2.4.18",

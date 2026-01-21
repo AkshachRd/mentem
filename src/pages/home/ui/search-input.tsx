@@ -2,7 +2,6 @@
 
 import type { Item } from '../model/use-search';
 
-import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { AnimatePresence } from 'framer-motion';
 import { useCallback, useState } from 'react';
 import { nanoid } from 'nanoid';
@@ -12,6 +11,14 @@ import { useSearch } from '../model/use-search';
 import { CardCreationForm } from './card-creation-form';
 
 import { useCardStore } from '@/entities/card';
+import {
+    Combobox,
+    ComboboxInput,
+    ComboboxContent,
+    ComboboxList,
+    ComboboxItem,
+    ComboboxEmpty,
+} from '@/shared/ui/combobox';
 
 type SearchInputProps = {
     selectedTagIds: string[];
@@ -80,34 +87,47 @@ export const SearchInput = ({ selectedTagIds, setSelectedTagIds }: SearchInputPr
     return (
         <div className="flex w-96 flex-col">
             <div className="relative">
-                <Autocomplete
-                    fullWidth
-                    allowsCustomValue={true}
-                    aria-label="Search and create cards"
-                    classNames={{ selectorButton: 'hidden' }}
-                    inputProps={{ classNames: { inputWrapper: 'bg-background z-10' } }}
-                    inputValue={fieldState.inputValue}
-                    isClearable={false}
-                    items={items}
-                    placeholder={isCreating ? 'Front side' : 'Search, create, tag...'}
-                    radius="full"
-                    selectedKey={fieldState.selectedKey}
-                    variant="underlined"
-                    onInputChange={handleInputChange}
-                    onSelectionChange={handleSelectionChange}
-                >
-                    {(item) => {
-                        if (item.type === 'tag') {
-                            return <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>;
-                        } else if (item.type === 'create') {
-                            return <AutocompleteItem key={item.type}>Create</AutocompleteItem>;
-                        } else {
-                            return (
-                                <AutocompleteItem key={item.type}>Can&apos;t find</AutocompleteItem>
-                            );
-                        }
+                <Combobox
+                    value={fieldState.selectedKey?.toString() ?? ''}
+                    onValueChange={(value) => {
+                        handleSelectionChange(value || null);
                     }}
-                </Autocomplete>
+                >
+                    <ComboboxInput
+                        className="bg-background z-10 w-full rounded-full border-b"
+                        placeholder={isCreating ? 'Front side' : 'Search, create, tag...'}
+                        showClear={false}
+                        showTrigger={false}
+                        value={fieldState.inputValue}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                    />
+                    <ComboboxContent>
+                        <ComboboxList>
+                            {items.map((item) => {
+                                if (item.type === 'tag') {
+                                    return (
+                                        <ComboboxItem key={item.key} value={item.key}>
+                                            {item.label}
+                                        </ComboboxItem>
+                                    );
+                                } else if (item.type === 'create') {
+                                    return (
+                                        <ComboboxItem key={item.type} value={item.type}>
+                                            Create
+                                        </ComboboxItem>
+                                    );
+                                } else {
+                                    return (
+                                        <ComboboxItem key={item.type} value={item.type}>
+                                            Can&apos;t find
+                                        </ComboboxItem>
+                                    );
+                                }
+                            })}
+                        </ComboboxList>
+                        <ComboboxEmpty>No results found</ComboboxEmpty>
+                    </ComboboxContent>
+                </Combobox>
             </div>
             <AnimatePresence>
                 {isCreating && (
