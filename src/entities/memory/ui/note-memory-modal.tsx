@@ -1,8 +1,9 @@
 'use client';
 
-import { Input, Textarea, Card, CardBody, addToast } from '@heroui/react';
+import { Input, Textarea, Card, CardBody } from '@heroui/react';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { useMemoriesStore } from '../model/store';
 import { NoteMemory } from '../model/types';
@@ -80,7 +81,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                 tagIds,
                 updatedAt: now,
             }));
-            addToast({ title: 'Note saved', color: 'success' });
+            toast.success('Note saved');
         } else {
             const newMemory: NoteMemory = {
                 id: nanoid(),
@@ -94,7 +95,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
             };
 
             addMemory(newMemory);
-            addToast({ title: 'Note saved', color: 'success' });
+            toast.success('Note saved');
         }
 
         onClose();
