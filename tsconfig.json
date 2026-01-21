@@ -21,7 +21,6 @@
         ],
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./*"],
             "@/app/*": ["./src/app/*"],
             "@/pages/*": ["./src/pages/*"],
             "@/widgets/*": ["./src/widgets/*"],
