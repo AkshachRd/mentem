@@ -1,4 +1,3 @@
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, cn } from '@heroui/react';
 import { useHover } from 'react-aria';
 import { useState } from 'react';
 
@@ -10,6 +9,12 @@ import {
 } from '@/shared/ui/icons';
 import { debounce } from '@/shared/lib/debounce';
 import { Card, CardComponent } from '@/entities/card';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from '@/shared/ui/dropdown-menu';
 
 interface CardItemDropdownProps {
     card: Card;
@@ -27,13 +32,9 @@ export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
     const { hoverProps: menuHoverProps, isHovered: isMenuHovered } = useHover({});
 
     return (
-        <Dropdown
-            className="w-full min-w-0"
-            isOpen={isDropdownOpen || isMenuHovered}
-            placement="right"
-        >
-            <DropdownTrigger>
-                <button
+        <DropdownMenu open={isDropdownOpen || isMenuHovered}>
+            <DropdownMenuTrigger>
+                <div
                     className="w-full"
                     {...cardHoverProps}
                     onClick={() => {
@@ -46,39 +47,31 @@ export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
                         headerContent={card.frontSide}
                         revealBack={isCardHovered}
                     />
-                </button>
-            </DropdownTrigger>
-            <DropdownMenu
+                </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
                 {...menuHoverProps}
                 aria-label="Dropdown menu with description"
-                variant="faded"
+                className="w-full min-w-0"
+                side="right"
             >
-                <DropdownItem
-                    key="new"
-                    className="gap-x-0"
-                    endContent={<AddNoteIcon className={iconClasses} />}
-                    textValue="Add Note"
-                />
-                <DropdownItem
-                    key="copy"
-                    className="gap-x-0"
-                    endContent={<CopyDocumentIcon className={iconClasses} />}
-                    textValue="Copy"
-                />
-                <DropdownItem
-                    key="edit"
-                    className="gap-x-0"
-                    endContent={<EditDocumentIcon className={iconClasses} />}
-                    textValue="Edit"
-                />
-                <DropdownItem
-                    key="delete"
-                    className="text-danger gap-x-0"
-                    color="danger"
-                    endContent={<DeleteDocumentIcon className={cn(iconClasses, 'text-danger')} />}
-                    textValue="Delete"
-                />
-            </DropdownMenu>
-        </Dropdown>
+                <DropdownMenuItem className="justify-between gap-x-0">
+                    <span>Add Note</span>
+                    <AddNoteIcon className={iconClasses} />
+                </DropdownMenuItem>
+                <DropdownMenuItem className="justify-between gap-x-0">
+                    <span>Copy</span>
+                    <CopyDocumentIcon className={iconClasses} />
+                </DropdownMenuItem>
+                <DropdownMenuItem className="justify-between gap-x-0">
+                    <span>Edit</span>
+                    <EditDocumentIcon className={iconClasses} />
+                </DropdownMenuItem>
+                <DropdownMenuItem className="justify-between gap-x-0" variant="destructive">
+                    <span>Delete</span>
+                    <DeleteDocumentIcon className={iconClasses} />
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
