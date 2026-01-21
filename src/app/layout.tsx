@@ -7,7 +7,7 @@ import { Toaster } from '../shared/ui/sonner';
 import { Providers } from './providers';
 
 import { siteConfig } from '@/shared/config';
-import { fontSans } from '@/shared/config';
+import { IBMPlexSans } from '@/shared/config';
 import { Navbar } from '@/widgets/navbar';
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
             <body
                 className={clsx(
                     'bg-background min-h-screen font-sans antialiased',
-                    fontSans.variable,
+                    IBMPlexSans.variable,
                 )}
             >
                 <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>

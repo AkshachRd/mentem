@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { FC } from 'react';
 import { Spoiler } from 'spoiled';
 
-import { fontSerif } from '@/shared/config';
+import { IBMPlexSerif } from '@/shared/config';
 import { Separator } from '@/shared/ui/separator';
 
 interface CardComponentProps {
@@ -20,7 +20,10 @@ export const CardComponent: FC<CardComponentProps> = ({
     className,
 }) => {
     return (
-        <Card className={clsx('w-[380px] font-serif', fontSerif.variable, className)} shadow="lg">
+        <Card
+            className={clsx('w-[380px] font-serif', IBMPlexSerif.variable, className)}
+            shadow="lg"
+        >
             <CardHeader className="h-28 justify-center text-xl">{headerContent}</CardHeader>
             <Separator />
             <CardFooter className="h-28 justify-center text-xl">
