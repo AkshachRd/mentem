@@ -16,7 +16,7 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
     const { tags } = useTagsStore();
 
     return (
-        <Tabs defaultValue="cards" className="w-full">
+        <Tabs className="w-full" defaultValue="cards">
             <TabsList variant="line">
                 <TabsTrigger value="cards">cards</TabsTrigger>
                 <TabsTrigger value="notes">notes</TabsTrigger>
@@ -38,7 +38,7 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
                     ))}
                 </div>
             </TabsContent>
-            <TabsContent value="table" className="w-full">
+            <TabsContent className="w-full" value="table">
                 <ContentTable />
             </TabsContent>
         </Tabs>

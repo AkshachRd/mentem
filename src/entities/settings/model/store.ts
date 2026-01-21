@@ -43,17 +43,25 @@ export const useSettingsStore = create<SettingsState>()(
                 set((state) => {
                     const newPaths = paths.filter((path) => !state.selectedPdfPaths.includes(path));
                     const updatedPaths = [...state.selectedPdfPaths, ...newPaths];
+
                     return {
                         selectedPdfPaths: updatedPaths,
-                        selectedPdfPath: updatedPaths.length > 0 && !state.selectedPdfPath ? updatedPaths[0] : state.selectedPdfPath,
+                        selectedPdfPath:
+                            updatedPaths.length > 0 && !state.selectedPdfPath
+                                ? updatedPaths[0]
+                                : state.selectedPdfPath,
                     };
                 }),
             removePdfPath: (path) =>
                 set((state) => {
                     const updatedPaths = state.selectedPdfPaths.filter((p) => p !== path);
+
                     return {
                         selectedPdfPaths: updatedPaths,
-                        selectedPdfPath: state.selectedPdfPath === path ? (updatedPaths[0] || null) : state.selectedPdfPath,
+                        selectedPdfPath:
+                            state.selectedPdfPath === path
+                                ? updatedPaths[0] || null
+                                : state.selectedPdfPath,
                     };
                 }),
             clearPdfPaths: () => set(() => ({ selectedPdfPaths: [], selectedPdfPath: null })),

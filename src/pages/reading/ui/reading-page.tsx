@@ -33,12 +33,12 @@ export function ReadingPage() {
         <div className="flex h-screen w-full gap-4 p-4">
             <div className="w-80 flex-shrink-0">
                 <FileSelector
-                    selectedFilePaths={selectedPdfPaths}
                     currentFilePath={selectedPdfPath}
-                    onFilesAdd={handleFilesAdd}
-                    onFileSelect={handleFileSelect}
-                    onFileRemove={handleFileRemove}
+                    selectedFilePaths={selectedPdfPaths}
                     onClearAll={handleClearAll}
+                    onFileRemove={handleFileRemove}
+                    onFileSelect={handleFileSelect}
+                    onFilesAdd={handleFilesAdd}
                 />
             </div>
             <div className="min-w-0 flex-1">

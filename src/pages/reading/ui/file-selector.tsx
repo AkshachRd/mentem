@@ -38,6 +38,7 @@ export function FileSelector({
 
             if (selected) {
                 const paths = Array.isArray(selected) ? selected : [selected];
+
                 onFilesAdd(paths);
             }
         } catch (error) {
@@ -79,7 +80,7 @@ export function FileSelector({
                                         className={`group flex items-start gap-2 rounded-md border p-3 transition-colors ${
                                             currentFilePath === path
                                                 ? 'border-primary bg-primary/10'
-                                                : 'hover:bg-muted cursor-pointer border-border'
+                                                : 'hover:bg-muted border-border cursor-pointer'
                                         }`}
                                         onClick={() => onFileSelect(path)}
                                     >
@@ -98,9 +99,9 @@ export function FileSelector({
                                             </div>
                                         </div>
                                         <Button
-                                            variant="ghost"
-                                            size="icon"
                                             className="h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                            size="icon"
+                                            variant="ghost"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onFileRemove(path);
