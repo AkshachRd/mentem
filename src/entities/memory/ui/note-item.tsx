@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
+import { Card, CardBody, CardHeader } from '@heroui/react';
 import { useState } from 'react';
 
 import { NoteMemory } from '../model/types';
@@ -8,6 +8,7 @@ import { NoteMemory } from '../model/types';
 import { NoteMemoryModal } from './note-memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
+import { Separator } from '@/shared/ui/separator';
 
 type NoteItemProps = {
     memory: NoteMemory;
@@ -26,7 +27,7 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
                     {tldr && <div className="text-tiny text-default-500">{tldr}</div>}
                     <div className="text-large font-semibold">{title}</div>
                 </CardHeader>
-                <Divider />
+                <Separator />
                 <CardBody>
                     <div
                         className="text-base leading-6 whitespace-pre-wrap"
