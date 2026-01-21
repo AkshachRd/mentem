@@ -6,8 +6,6 @@ import type { Card } from '@/entities/card/model/types';
 import type { Tag } from '@/entities/tag/model/types';
 
 import * as React from 'react';
-import { HeroUIProvider } from '@heroui/system';
-import { ToastProvider } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
@@ -32,7 +30,6 @@ declare module '@react-types/shared' {
 }
 
 export function Providers({ children, themeProps }: ProvidersProps) {
-    const router = useRouter();
     const addMemory = useMemoriesStore((s) => s.addMemory);
     const addCard = useCardStore((s) => s.addCard);
     const addTag = useTagsStore((s) => s.addTag);
@@ -205,12 +202,5 @@ export function Providers({ children, themeProps }: ProvidersProps) {
         };
     }, [addMemory, addCard, addTag]);
 
-    return (
-        <HeroUIProvider navigate={router.push}>
-            <NextThemesProvider {...themeProps}>
-                <ToastProvider />
-                {children}
-            </NextThemesProvider>
-        </HeroUIProvider>
-    );
+    return <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>;
 }
