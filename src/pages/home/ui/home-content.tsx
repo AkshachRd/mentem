@@ -1,7 +1,6 @@
 'use client';
 
 import { CardsList } from './cards-list';
-import { ContentTable } from './content-table';
 import { MemoriesList } from './memories-list';
 
 import { TagComponent } from '@/entities/tag';
@@ -16,12 +15,11 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
     const { tags } = useTagsStore();
 
     return (
-        <Tabs defaultValue="cards" className="w-full">
+        <Tabs className="w-full" defaultValue="cards">
             <TabsList variant="line">
                 <TabsTrigger value="cards">cards</TabsTrigger>
                 <TabsTrigger value="notes">notes</TabsTrigger>
                 <TabsTrigger value="tags">tags</TabsTrigger>
-                <TabsTrigger value="table">table</TabsTrigger>
             </TabsList>
             <TabsContent value="cards">
                 <CardsList selectedTagIds={selectedTagIds} />
@@ -37,9 +35,6 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
                         </TagComponent>
                     ))}
                 </div>
-            </TabsContent>
-            <TabsContent value="table" className="w-full">
-                <ContentTable />
             </TabsContent>
         </Tabs>
     );
