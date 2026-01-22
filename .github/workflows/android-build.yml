@@ -33,8 +33,7 @@ jobs:
           add-to-path: true
 
       - name: Install Frontend Dependencies
-        # Added --no-audit --no-fund to make it lighter/more stable
-        run: npm install --legacy-peer-deps --no-audit --no-fund
+        run: npm ci
 
       - name: Build APK
         env:
