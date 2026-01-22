@@ -38,6 +38,21 @@
             transform: scale(1);
         }
     }
+
+    @keyframes quote-highlight-fade {
+        0% {
+            opacity: 1;
+            background-color: rgba(255, 213, 0, 0.5);
+        }
+        70% {
+            opacity: 1;
+            background-color: rgba(255, 213, 0, 0.4);
+        }
+        100% {
+            opacity: 0;
+            background-color: rgba(255, 213, 0, 0);
+        }
+    }
 }
 
 @theme inline {

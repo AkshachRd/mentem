@@ -1,6 +1,9 @@
 'use client';
 
+import type { PdfTextSelectionData } from '@/shared/lib/hooks';
+
 import { ReactNode, useState, useCallback, MouseEvent } from 'react';
+import { MessageSquare } from 'lucide-react';
 
 import {
     ContextMenu,
@@ -27,19 +30,23 @@ const HIGHLIGHT_COLORS = [
 export interface PdfTextContextMenuProps {
     children: ReactNode;
     getSelectedText: () => string;
+    getSelectionWithPosition?: () => PdfTextSelectionData | null;
     onCopy: (text: string) => void;
     onAddNote: (text: string) => void;
     onHighlight: (text: string, color: string) => void;
     onSearch: (text: string) => void;
+    onSendToChat?: (data: PdfTextSelectionData) => void;
 }
 
 export function PdfTextContextMenu({
     children,
     getSelectedText,
+    getSelectionWithPosition,
     onCopy,
     onAddNote,
     onHighlight,
     onSearch,
+    onSendToChat,
 }: PdfTextContextMenuProps) {
     const [currentText, setCurrentText] = useState('');
     const [hasSelection, setHasSelection] = useState(false);
@@ -77,6 +84,21 @@ export function PdfTextContextMenu({
                         <AddNoteIcon className={iconClasses} />
                         <span>Add Note</span>
                     </ContextMenuItem>
+
+                    {onSendToChat && getSelectionWithPosition && (
+                        <ContextMenuItem
+                            onClick={() => {
+                                const data = getSelectionWithPosition();
+
+                                if (data) {
+                                    onSendToChat(data);
+                                }
+                            }}
+                        >
+                            <MessageSquare className="h-4 w-4 shrink-0" />
+                            <span>Send to Chat</span>
+                        </ContextMenuItem>
+                    )}
 
                     <ContextMenuSub>
                         <ContextMenuSubTrigger>

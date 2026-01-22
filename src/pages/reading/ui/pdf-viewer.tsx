@@ -16,8 +16,14 @@ import { PdfTextContextMenu } from './pdf-text-context-menu';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
 import { ScrollArea } from '@/shared/ui/scroll-area';
-import { useTextSelection } from '@/shared/lib/hooks';
+import { useTextSelection, usePdfTextSelection } from '@/shared/lib/hooks';
+
+import type { PdfTextSelectionData } from '@/shared/lib/hooks';
+
 import { useMemoriesStore } from '@/entities/memory';
+import { useQuoteStore } from '@/entities/quote';
+
+import type { Quote } from '@/entities/quote';
 
 // Настройка worker для pdfjs
 // Используем версию из react-pdf (5.4.296)
@@ -52,9 +58,18 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
     // Text selection for context menu
     const { getSelectedText, clearSelection } = useTextSelection();
+    const { getSelectionWithPosition } = usePdfTextSelection();
 
     // Memories store for adding notes
     const addMemory = useMemoriesStore((state) => state.addMemory);
+
+    // Quote store for chat integration
+    const addPendingQuote = useQuoteStore((state) => state.addPendingQuote);
+    const navigationTarget = useQuoteStore((state) => state.navigationTarget);
+    const clearNavigationTarget = useQuoteStore((state) => state.clearNavigationTarget);
+
+    // Ref for highlight cleanup
+    const highlightCleanupRef = useRef<(() => void) | null>(null);
 
     // Context menu action handlers
     const handleCopy = useCallback(
@@ -125,6 +140,41 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             clearSelection();
         },
         [clearSelection],
+    );
+
+    // Handle sending selected text to chat as a quote
+    const handleSendToChat = useCallback(
+        (data: PdfTextSelectionData) => {
+            if (!data.text || !filePath) return;
+
+            const fileName = filePath.split(/[\\/]/).pop() || 'PDF';
+
+            const quote: Quote = {
+                id: crypto.randomUUID(),
+                text: data.text,
+                source: {
+                    filePath,
+                    fileName,
+                    position: {
+                        pageNumber: data.pageNumber,
+                        startOffset: data.startOffset,
+                        endOffset: data.endOffset,
+                        rect: data.rect,
+                    },
+                },
+                createdAt: Date.now(),
+            };
+
+            // Add to pending quotes in chat
+            addPendingQuote(quote);
+
+            toast.success('Цитата добавлена в чат', {
+                description: `${fileName}, стр. ${data.pageNumber}`,
+            });
+
+            clearSelection();
+        },
+        [filePath, addPendingQuote, clearSelection],
     );
 
     // Функция для расчета масштаба page fit
@@ -339,6 +389,82 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             };
         }
     }, [filePath]);
+
+    // Handle navigation from quote clicks in chat
+    useEffect(() => {
+        if (!navigationTarget || !containerRef.current) return;
+
+        // Check if this viewer has the target file
+        if (navigationTarget.filePath !== filePath) {
+            // File mismatch - clear target, different viewer should handle it
+            return;
+        }
+
+        const { position } = navigationTarget;
+
+        // Clean up previous highlight
+        if (highlightCleanupRef.current) {
+            highlightCleanupRef.current();
+            highlightCleanupRef.current = null;
+        }
+
+        // Navigate to page
+        if (viewMode === 'all') {
+            scrollToPage(position.pageNumber);
+        } else {
+            setPageNumber(position.pageNumber);
+        }
+
+        // Highlight the text after scroll completes
+        const timeoutId = setTimeout(() => {
+            if (!containerRef.current) return;
+
+            const pageElement = containerRef.current.querySelector(
+                `[data-page-number="${position.pageNumber}"]`,
+            ) as HTMLElement;
+
+            if (pageElement && position.rect) {
+                // Create highlight overlay
+                const highlight = document.createElement('div');
+
+                highlight.className = 'quote-highlight-overlay';
+                highlight.style.cssText = `
+                    position: absolute;
+                    top: ${position.rect.top}px;
+                    left: ${position.rect.left}px;
+                    width: ${position.rect.width}px;
+                    height: ${position.rect.height}px;
+                    background-color: rgba(255, 213, 0, 0.4);
+                    pointer-events: none;
+                    border-radius: 2px;
+                    animation: quote-highlight-fade 2s ease-out forwards;
+                `;
+
+                // Position relative to page
+                const pageContent = pageElement.querySelector('.react-pdf__Page') as HTMLElement;
+
+                if (pageContent) {
+                    pageContent.style.position = 'relative';
+                    pageContent.appendChild(highlight);
+
+                    // Cleanup function
+                    highlightCleanupRef.current = () => {
+                        highlight.remove();
+                    };
+
+                    // Auto-remove after animation
+                    setTimeout(() => {
+                        highlight.remove();
+                        highlightCleanupRef.current = null;
+                    }, 2000);
+                }
+            }
+
+            clearNavigationTarget();
+        }, 400);
+
+        return () => clearTimeout(timeoutId);
+    }, [navigationTarget, filePath, viewMode, clearNavigationTarget]);
 
     const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
         setNumPages(numPages);
@@ -579,10 +705,12 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                             fileUrl && (
                                 <PdfTextContextMenu
                                     getSelectedText={getSelectedText}
+                                    getSelectionWithPosition={getSelectionWithPosition}
                                     onAddNote={handleAddNote}
                                     onCopy={handleCopy}
                                     onHighlight={handleHighlight}
                                     onSearch={handleSearch}
+                                    onSendToChat={handleSendToChat}
                                 >
                                     <div className="flex flex-col items-center gap-4 p-4">
                                         <Document
@@ -596,14 +724,19 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                             onLoadSuccess={onDocumentLoadSuccess}
                                         >
                                             {viewMode === 'single' ? (
-                                                <Page
-                                                    className="max-w-full"
-                                                    pageNumber={pageNumber}
-                                                    renderAnnotationLayer={true}
-                                                    renderTextLayer={true}
-                                                    scale={scale}
-                                                    onLoadSuccess={onPageLoadSuccess}
-                                                />
+                                                <div
+                                                    className="flex justify-center"
+                                                    data-page-number={pageNumber}
+                                                >
+                                                    <Page
+                                                        className="max-w-full"
+                                                        pageNumber={pageNumber}
+                                                        renderAnnotationLayer={true}
+                                                        renderTextLayer={true}
+                                                        scale={scale}
+                                                        onLoadSuccess={onPageLoadSuccess}
+                                                    />
+                                                </div>
                                             ) : (
                                                 numPages &&
                                                 Array.from(new Array(numPages), (el, index) => {

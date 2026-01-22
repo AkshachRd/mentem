@@ -10,6 +10,13 @@ import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { Textarea } from '@/shared/ui/textarea';
+import {
+    useQuoteStore,
+    QuoteBlock,
+    QuoteBadge,
+    extractQuoteId,
+    formatQuoteForChat,
+} from '@/entities/quote';
 
 export function ChatPanel() {
     const { messages, sendMessage } = useChat({
@@ -19,14 +26,20 @@ export function ChatPanel() {
     });
     const [input, setInput] = useState('');
 
+    // Quote store for rendering quote blocks and pending quotes
+    const getQuote = useQuoteStore((state) => state.getQuote);
+    const pendingQuotes = useQuoteStore((state) => state.pendingQuotes);
+    const removePendingQuote = useQuoteStore((state) => state.removePendingQuote);
+    const clearPendingQuotes = useQuoteStore((state) => state.clearPendingQuotes);
+
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Автоскролл вниз при новых сообщениях
+    // Автоскролл вниз при новых сообщениях или новых цитатах
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages]);
+    }, [messages, pendingQuotes]);
 
     return (
         <Card className="bg-background flex h-screen w-80 flex-col rounded-l-xl rounded-r-none border-l shadow-2xl transition-all duration-300 md:w-96">
@@ -77,9 +90,29 @@ export function ChatPanel() {
                                             : 'bg-muted text-foreground rounded-tl-none',
                                     )}
                                 >
-                                    {/* Обработка цитат (простая реализация) */}
-                                    {m.parts.map((part, i) =>
-                                        part.type === 'text' ? (
+                                    {/* Обработка цитат */}
+                                    {m.parts.map((part, i) => {
+                                        if (part.type !== 'text') return null;
+
+                                        // Check for quote marker
+                                        const quoteId = extractQuoteId(part.text);
+
+                                        if (quoteId) {
+                                            const quote = getQuote(quoteId);
+
+                                            if (quote) {
+                                                return (
+                                                    <QuoteBlock
+                                                        key={i}
+                                                        className="my-1"
+                                                        quote={quote}
+                                                    />
+                                                );
+                                            }
+                                        }
+
+                                        // Regular text or quote-style text (starting with >)
+                                        return (
                                             <p
                                                 key={i}
                                                 className={
@@ -90,11 +123,29 @@ export function ChatPanel() {
                                             >
                                                 {part.text}
                                             </p>
-                                        ) : null,
-                                    )}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}
+
+                        {/* Pending quotes - показываются как "черновик" в области чата */}
+                        {pendingQuotes.length > 0 && (
+                            <div className="flex flex-row-reverse gap-3 text-sm">
+                                <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+                                    <User size={14} />
+                                </div>
+                                <div className="bg-muted/50 border-primary/20 max-w-[85%] space-y-2 rounded-lg rounded-tr-none border border-dashed p-2">
+                                    {pendingQuotes.map((quote) => (
+                                        <QuoteBadge
+                                            key={quote.id}
+                                            quote={quote}
+                                            onRemove={removePendingQuote}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </ScrollArea>
             </CardContent>
@@ -105,16 +156,35 @@ export function ChatPanel() {
                     className="flex w-full items-end gap-2"
                     onSubmit={(e) => {
                         e.preventDefault();
-                        sendMessage({ text: input });
+
+                        // Build message with quote markers
+                        const quoteParts = pendingQuotes.map(formatQuoteForChat);
+                        const fullMessage = [...quoteParts, input.trim()]
+                            .filter(Boolean)
+                            .join('\n\n');
+
+                        if (!fullMessage) return;
+
+                        sendMessage({ text: fullMessage });
+                        setInput('');
+                        clearPendingQuotes();
                     }}
                 >
                     <Textarea
                         className="max-h-32 min-h-[44px] resize-none text-sm"
-                        placeholder="Спросить AI..."
+                        placeholder={
+                            pendingQuotes.length > 0
+                                ? 'Добавьте вопрос к цитате...'
+                                : 'Спросить AI...'
+                        }
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                     />
-                    <Button disabled={!input.trim()} size="icon" type="submit">
+                    <Button
+                        disabled={!input.trim() && pendingQuotes.length === 0}
+                        size="icon"
+                        type="submit"
+                    >
                         <Send className="h-4 w-4" />
                     </Button>
                 </form>
