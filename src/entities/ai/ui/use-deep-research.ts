@@ -1,9 +1,6 @@
 'use client';
 
-import type { StreamableValue } from 'ai/rsc';
-
 import { useState } from 'react';
-import { readStreamableValue } from 'ai/rsc';
 import { toast } from 'sonner';
 
 import { useTaskStore } from '../model/store';
@@ -45,8 +42,6 @@ export function useDeepResearch() {
 
         taskStore.setQuestion(question);
 
-        let content = '';
-
         try {
             type GenerateQuestionsFn = (
                 q: string,
@@ -58,14 +53,7 @@ export function useDeepResearch() {
                 async () => await import('../lib/generate-questions.stub'),
             )) as unknown as { generateQuestions: GenerateQuestionsFn };
 
-            const { output } = await mod.generateQuestions(question, 'english', handleError);
-
-            for await (const delta of readStreamableValue(
-                output as StreamableValue<string, unknown>,
-            )) {
-                content = `${content}${delta}`;
-                taskStore.updateQuestions(content);
-            }
+            await mod.generateQuestions(question, 'english', handleError);
         } catch {
             // Server actions not available in static export
             taskStore.updateQuestions('Research is unavailable in this build.');

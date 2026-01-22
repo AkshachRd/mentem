@@ -11,13 +11,7 @@ export async function POST(req: Request) {
         model: fleshModel,
         system: getSystemPrompt(),
         prompt,
-        onFinish: (result) => {
-            console.log(result);
-        },
-        onError: (error) => {
-            console.error(error);
-        },
     });
 
-    return result.toDataStreamResponse();
+    return result.toUIMessageStreamResponse();
 }
