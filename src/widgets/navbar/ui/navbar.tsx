@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 
 import { siteConfig } from '@/shared/config';
@@ -26,11 +25,12 @@ export const Navbar = () => {
                     <NavigationMenuList>
                         {siteConfig.navItems.map((item) => (
                             <NavigationMenuItem key={item.href}>
-                                <Link href={item.href}>
-                                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                        {item.label}
-                                    </NavigationMenuLink>
-                                </Link>
+                                <NavigationMenuLink
+                                    className={navigationMenuTriggerStyle()}
+                                    href={item.href}
+                                >
+                                    {item.label}
+                                </NavigationMenuLink>
                             </NavigationMenuItem>
                         ))}
                     </NavigationMenuList>
