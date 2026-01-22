@@ -26,7 +26,7 @@ export const Navbar = () => {
                     <NavigationMenuList>
                         {siteConfig.navItems.map((item) => (
                             <NavigationMenuItem key={item.href}>
-                                <Link legacyBehavior passHref href={item.href}>
+                                <Link href={item.href}>
                                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                                         {item.label}
                                     </NavigationMenuLink>
@@ -43,7 +43,6 @@ export const Navbar = () => {
                     </Button>
                 </div>
             </div>
-
             <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
