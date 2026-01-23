@@ -14,5 +14,9 @@
       "Bash(npm run build:*)",
       "Bash(npx tsc:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "enableAllProjectMcpServers": true
 }
