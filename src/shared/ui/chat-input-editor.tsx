@@ -18,6 +18,7 @@ interface ChatInputEditorProps {
     className?: string;
     onChange: (value: string) => void;
     onQuoteRemove: (quoteId: string) => void;
+    onQuoteClick?: (quoteId: string) => void;
     onSubmit: () => void;
 }
 
@@ -32,6 +33,7 @@ export function ChatInputEditor({
     className,
     onChange,
     onQuoteRemove,
+    onQuoteClick,
     onSubmit,
 }: ChatInputEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
@@ -109,12 +111,19 @@ export function ChatInputEditor({
                     {quotes.map((quote) => (
                         <div
                             key={quote.id}
-                            className="bg-primary/10 text-primary group inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2 py-1 text-xs"
+                            className={cn(
+                                'bg-primary/10 text-primary group inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2 py-1 text-xs',
+                                onQuoteClick && 'cursor-pointer hover:bg-primary/20 transition-colors',
+                            )}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onQuoteClick?.(quote.id);
+                            }}
                         >
                             <span className="line-clamp-1 max-w-[200px]">{quote.text}</span>
                             <span className="text-muted-foreground text-[10px]">{quote.source}</span>
                             <button
-                                className="text-muted-foreground hover:text-foreground -mr-1 rounded p-0.5 transition-colors"
+                                className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 -mr-1 rounded p-0.5 transition-colors"
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();

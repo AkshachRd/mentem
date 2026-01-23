@@ -32,6 +32,7 @@ export function ChatPanel() {
     const pendingQuotes = useQuoteStore((state) => state.pendingQuotes);
     const removePendingQuote = useQuoteStore((state) => state.removePendingQuote);
     const clearPendingQuotes = useQuoteStore((state) => state.clearPendingQuotes);
+    const navigateToQuote = useQuoteStore((state) => state.navigateToQuote);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -171,6 +172,7 @@ export function ChatPanel() {
                         )}
                         value={input}
                         onChange={setInput}
+                        onQuoteClick={navigateToQuote}
                         onQuoteRemove={removePendingQuote}
                         onSubmit={() => {
                             // Build message with quote markers
