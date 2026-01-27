@@ -96,7 +96,9 @@ export function CreateFlashcardDialog({
                 <div className="space-y-4">
                     {/* Selected text preview */}
                     <div className="bg-muted/50 rounded-md p-3">
-                        <Label className="text-muted-foreground mb-1 text-xs">Выделенный текст</Label>
+                        <Label className="text-muted-foreground mb-1 text-xs">
+                            Выделенный текст
+                        </Label>
                         <p className="line-clamp-3 text-xs">{selectedText}</p>
                     </div>
 
