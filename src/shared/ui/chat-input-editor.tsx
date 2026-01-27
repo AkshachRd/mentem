@@ -4,10 +4,12 @@ import React, { useRef, useCallback, useEffect, KeyboardEvent, ClipboardEvent } 
 import { X } from 'lucide-react';
 
 import { cn } from '@/shared/lib/utils';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/shared/ui/tooltip';
 
 export interface QuoteBadgeData {
     id: string;
     text: string;
+    fullText: string;
     source: string;
 }
 
@@ -109,30 +111,35 @@ export function ChatInputEditor({
             {quotes.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                     {quotes.map((quote) => (
-                        <div
-                            key={quote.id}
-                            className={cn(
-                                'bg-primary/10 text-primary group inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2 py-1 text-xs',
-                                onQuoteClick && 'cursor-pointer hover:bg-primary/20 transition-colors',
-                            )}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onQuoteClick?.(quote.id);
-                            }}
-                        >
-                            <span className="line-clamp-1 max-w-[200px]">{quote.text}</span>
-                            <span className="text-muted-foreground text-[10px]">{quote.source}</span>
-                            <button
-                                className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 -mr-1 rounded p-0.5 transition-colors"
-                                type="button"
+                        <Tooltip key={quote.id} delay={300}>
+                            <TooltipTrigger
+                                className={cn(
+                                    'bg-primary/10 text-primary group inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2 py-1 text-xs',
+                                    onQuoteClick && 'cursor-pointer hover:bg-primary/20 transition-colors',
+                                )}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onQuoteRemove(quote.id);
+                                    onQuoteClick?.(quote.id);
                                 }}
                             >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </div>
+                                <span className="line-clamp-1 max-w-[200px]">{quote.text}</span>
+                                <span className="text-muted-foreground text-[10px]">{quote.source}</span>
+                                <button
+                                    className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 -mr-1 rounded p-0.5 transition-colors"
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onQuoteRemove(quote.id);
+                                    }}
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                                <p className="text-sm leading-relaxed">{quote.fullText}</p>
+                                <p className="text-muted-foreground mt-1 text-[10px]">{quote.source}</p>
+                            </TooltipContent>
+                        </Tooltip>
                     ))}
                 </div>
             )}

@@ -167,6 +167,7 @@ export function ChatPanel() {
                                     quote.text.length > 60
                                         ? quote.text.slice(0, 60) + '...'
                                         : quote.text,
+                                fullText: quote.text,
                                 source: `${quote.source.fileName}, стр. ${quote.source.position.pageNumber}`,
                             }),
                         )}

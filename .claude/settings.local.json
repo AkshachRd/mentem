@@ -1,20 +1,24 @@
 {
-    "permissions": {
-        "allow": [
-            "mcp__acp__Write",
-            "mcp__acp__Edit",
-            "mcp__acp__Bash",
-            "mcp__shadcn__get_audit_checklist",
-            "mcp__shadcn__search_items_in_registries",
-            "mcp__shadcn__get_project_registries",
-            "mcp__shadcn__get_add_command_for_items",
-            "Bash(dir:*)",
-            "Bash(findstr:*)",
-            "Bash(npm run lint:*)",
-            "Bash(npm run build:*)",
-            "Bash(npx tsc:*)"
-        ]
-    },
-    "enableAllProjectMcpServers": true,
-    "enabledMcpjsonServers": ["shadcn"]
+  "permissions": {
+    "allow": [
+      "mcp__acp__Write",
+      "mcp__acp__Edit",
+      "mcp__acp__Bash",
+      "mcp__shadcn__get_audit_checklist",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__get_add_command_for_items",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm install:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }
