@@ -9,14 +9,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/u
 import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
-import { Textarea } from '@/shared/ui/textarea';
+import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
 import {
     useQuoteStore,
     QuoteBlock,
-    QuoteBadge,
     extractQuoteId,
     formatQuoteForChat,
 } from '@/entities/quote';
+
+import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
 
 export function ChatPanel() {
     const { messages, sendMessage } = useChat({
@@ -31,15 +32,16 @@ export function ChatPanel() {
     const pendingQuotes = useQuoteStore((state) => state.pendingQuotes);
     const removePendingQuote = useQuoteStore((state) => state.removePendingQuote);
     const clearPendingQuotes = useQuoteStore((state) => state.clearPendingQuotes);
+    const navigateToQuote = useQuoteStore((state) => state.navigateToQuote);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Автоскролл вниз при новых сообщениях или новых цитатах
+    // Автоскролл вниз при новых сообщениях
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages, pendingQuotes]);
+    }, [messages]);
 
     return (
         <Card className="bg-background flex h-screen w-80 flex-col rounded-l-xl rounded-r-none border-l shadow-2xl transition-all duration-300 md:w-96">
@@ -128,24 +130,6 @@ export function ChatPanel() {
                                 </div>
                             </div>
                         ))}
-
-                        {/* Pending quotes - показываются как "черновик" в области чата */}
-                        {pendingQuotes.length > 0 && (
-                            <div className="flex flex-row-reverse gap-3 text-sm">
-                                <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                                    <User size={14} />
-                                </div>
-                                <div className="bg-muted/50 border-primary/20 max-w-[85%] space-y-2 rounded-lg rounded-tr-none border border-dashed p-2">
-                                    {pendingQuotes.map((quote) => (
-                                        <QuoteBadge
-                                            key={quote.id}
-                                            quote={quote}
-                                            onRemove={removePendingQuote}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </ScrollArea>
             </CardContent>
@@ -170,15 +154,40 @@ export function ChatPanel() {
                         clearPendingQuotes();
                     }}
                 >
-                    <Textarea
-                        className="max-h-32 min-h-[44px] resize-none text-sm"
+                    <ChatInputEditor
                         placeholder={
                             pendingQuotes.length > 0
                                 ? 'Добавьте вопрос к цитате...'
                                 : 'Спросить AI...'
                         }
+                        quotes={pendingQuotes.map(
+                            (quote): QuoteBadgeData => ({
+                                id: quote.id,
+                                text:
+                                    quote.text.length > 60
+                                        ? quote.text.slice(0, 60) + '...'
+                                        : quote.text,
+                                fullText: quote.text,
+                                source: `${quote.source.fileName}, стр. ${quote.source.position.pageNumber}`,
+                            }),
+                        )}
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={setInput}
+                        onQuoteClick={navigateToQuote}
+                        onQuoteRemove={removePendingQuote}
+                        onSubmit={() => {
+                            // Build message with quote markers
+                            const quoteParts = pendingQuotes.map(formatQuoteForChat);
+                            const fullMessage = [...quoteParts, input.trim()]
+                                .filter(Boolean)
+                                .join('\n\n');
+
+                            if (!fullMessage) return;
+
+                            sendMessage({ text: fullMessage });
+                            setInput('');
+                            clearPendingQuotes();
+                        }}
                     />
                     <Button
                         disabled={!input.trim() && pendingQuotes.length === 0}
