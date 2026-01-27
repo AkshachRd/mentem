@@ -32,7 +32,7 @@ export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
     const { hoverProps: menuHoverProps, isHovered: isMenuHovered } = useHover({});
 
     return (
-        <DropdownMenu open={isDropdownOpen || isMenuHovered}>
+        <DropdownMenu modal={false} open={isDropdownOpen || isMenuHovered}>
             <DropdownMenuTrigger>
                 <div
                     className="w-full"

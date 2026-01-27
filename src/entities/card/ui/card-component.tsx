@@ -13,19 +13,43 @@ interface CardComponentProps {
     className?: string;
 }
 
+function getTextSizeClass(text?: string): string {
+    const len = text?.length ?? 0;
+
+    if (len <= 30) return 'text-xl';
+    if (len <= 60) return 'text-lg';
+    if (len <= 100) return 'text-base';
+    if (len <= 150) return 'text-sm';
+
+    return 'text-xs';
+}
+
 export const CardComponent: FC<CardComponentProps> = ({
     headerContent,
     footerContent,
     revealBack = false,
     className,
 }) => {
+    const headerSizeClass = getTextSizeClass(headerContent);
+    const footerSizeClass = getTextSizeClass(footerContent);
+
     return (
         <Card className={clsx('w-[380px] font-serif', IBMPlexSerif.variable, className)}>
-            <CardHeader className="flex h-28 items-center justify-center text-xl">
+            <CardHeader
+                className={clsx(
+                    'flex h-28 items-center justify-center overflow-hidden p-4 text-center',
+                    headerSizeClass,
+                )}
+            >
                 {headerContent}
             </CardHeader>
             <Separator />
-            <CardFooter className="flex h-28 items-center justify-center text-xl">
+            <CardFooter
+                className={clsx(
+                    'flex h-28 items-center justify-center overflow-hidden p-4 text-center',
+                    footerSizeClass,
+                )}
+            >
                 <Spoiler fps={16} hidden={!revealBack}>
                     {footerContent}
                 </Spoiler>

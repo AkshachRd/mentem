@@ -12,6 +12,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { toast } from 'sonner';
 
 import { PdfTextContextMenu } from './pdf-text-context-menu';
+import { CreateFlashcardDialog } from './create-flashcard-dialog';
 
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
@@ -55,6 +56,10 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+    // Flashcard dialog state
+    const [flashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
+    const [flashcardText, setFlashcardText] = useState('');
 
     // Text selection for context menu
     const { getSelectedText, clearSelection } = useTextSelection();
@@ -175,6 +180,18 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             clearSelection();
         },
         [filePath, addPendingQuote, clearSelection],
+    );
+
+    // Handle creating flashcard from selected text
+    const handleCreateFlashcard = useCallback(
+        (text: string) => {
+            if (!text) return;
+
+            setFlashcardText(text);
+            setFlashcardDialogOpen(true);
+            clearSelection();
+        },
+        [clearSelection],
     );
 
     // Функция для расчета масштаба page fit
@@ -708,6 +725,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                     getSelectionWithPosition={getSelectionWithPosition}
                                     onAddNote={handleAddNote}
                                     onCopy={handleCopy}
+                                    onCreateFlashcard={handleCreateFlashcard}
                                     onHighlight={handleHighlight}
                                     onSearch={handleSearch}
                                     onSendToChat={handleSendToChat}
@@ -768,6 +786,14 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                     </ScrollArea>
                 </div>
             </CardContent>
+
+            {/* Flashcard creation dialog */}
+            <CreateFlashcardDialog
+                open={flashcardDialogOpen}
+                selectedText={flashcardText}
+                sourceContext={filePath ? `${filePath.split(/[\\/]/).pop()}, Page ${pageNumber}` : undefined}
+                onOpenChange={setFlashcardDialogOpen}
+            />
         </Card>
     );
 }

@@ -17,6 +17,7 @@ import { useCardStore } from '@/entities/card/model/store';
 import { useTagsStore } from '@/entities/tag/model/store';
 import { getCollectionDir, listFiles, readMarkdownFile } from '@/shared/lib/fs';
 import { parseMemoryMarkdown } from '@/entities/memory/lib/parse';
+import { parseCardMarkdown } from '@/entities/card/lib/parse';
 
 export interface ProvidersProps {
     children: React.ReactNode;
@@ -43,7 +44,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                 const cardsDir = await getCollectionDir('cards');
                 const tagsDir = await getCollectionDir('tags');
 
-                const [memFiles] = await Promise.all([
+                const [memFiles, cardFiles] = await Promise.all([
                     listFiles(memoriesDir),
                     listFiles(cardsDir),
                     listFiles(tagsDir),
@@ -58,6 +59,20 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                         const memory = parseMemoryMarkdown(content);
 
                         if (memory) addMemory(memory);
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                // Hydrate cards from disk
+                try {
+                    const cardEntries = cardFiles.filter((f) => f.name?.endsWith('.md'));
+
+                    for (const entry of cardEntries) {
+                        const content = await readMarkdownFile(cardsDir, entry.name!);
+                        const card = parseCardMarkdown(content);
+
+                        if (card) addCard(card);
                     }
                 } catch {
                     /* ignore */

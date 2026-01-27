@@ -3,7 +3,7 @@
 import type { PdfTextSelectionData } from '@/shared/lib/hooks';
 
 import { ReactNode, useState, useCallback, MouseEvent } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Layers } from 'lucide-react';
 
 import {
     ContextMenu,
@@ -36,6 +36,7 @@ export interface PdfTextContextMenuProps {
     onHighlight: (text: string, color: string) => void;
     onSearch: (text: string) => void;
     onSendToChat?: (data: PdfTextSelectionData) => void;
+    onCreateFlashcard?: (text: string) => void;
 }
 
 export function PdfTextContextMenu({
@@ -47,6 +48,7 @@ export function PdfTextContextMenu({
     onHighlight,
     onSearch,
     onSendToChat,
+    onCreateFlashcard,
 }: PdfTextContextMenuProps) {
     const [currentText, setCurrentText] = useState('');
     const [hasSelection, setHasSelection] = useState(false);
@@ -84,6 +86,13 @@ export function PdfTextContextMenu({
                         <AddNoteIcon className={iconClasses} />
                         <span>Add Note</span>
                     </ContextMenuItem>
+
+                    {onCreateFlashcard && (
+                        <ContextMenuItem onClick={() => onCreateFlashcard(currentText)}>
+                            <Layers className="h-4 w-4 shrink-0" />
+                            <span>Create Flashcard</span>
+                        </ContextMenuItem>
+                    )}
 
                     {onSendToChat && getSelectionWithPosition && (
                         <ContextMenuItem
