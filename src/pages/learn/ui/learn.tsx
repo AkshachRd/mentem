@@ -55,12 +55,12 @@ export function Learn() {
     };
 
     if (!cards) {
-        return <div>No cards(</div>;
+        return <div>No cards</div>;
     }
 
     return (
         <div className="flex h-full w-full items-center justify-center" {...keyboardProps}>
-            <Side color="danger" isActive={leftActive}>
+            <Side color="destructive" isActive={leftActive}>
                 Bad
             </Side>
             <div className="flex h-full flex-col justify-evenly">
