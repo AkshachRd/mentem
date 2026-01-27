@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         : `Text to create flashcard from:\n"${text}"`;
 
     const result = streamObject({
-        model: openrouter('deepseek/deepseek-chat-v3-0324:free'),
+        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
         schema: flashcardSchema,
         system: SYSTEM_PROMPT,
         prompt,

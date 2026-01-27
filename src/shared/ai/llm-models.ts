@@ -9,5 +9,5 @@ if (!openrouterApiKey) {
 
 const openrouter = createOpenRouter({ apiKey: openrouterApiKey });
 
-export const thinkingModel = openrouter('deepseek/deepseek-r1:free');
-export const fleshModel = openrouter('deepseek/deepseek-chat-v3-0324:free');
+export const thinkingModel = openrouter('tngtech/deepseek-r1t2-chimera:free');
+export const fleshModel = openrouter('tngtech/deepseek-r1t2-chimera:free');

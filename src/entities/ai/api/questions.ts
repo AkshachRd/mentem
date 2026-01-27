@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const { prompt }: { prompt: string } = await req.json();
 
     const result = streamText({
-        model: openrouter('deepseek/deepseek-r1:free'),
+        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
         system: getSystemPrompt(),
         prompt,
     });

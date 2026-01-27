@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = streamText({
-        model: openrouter('deepseek/deepseek-r1:free'),
+        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
         system: 'Ты помощник-литературовед. Пользователь читает книгу. Твоя задача — объяснять контекст, значение слов или обсуждать идеи из присланных фрагментов.',
         messages,
     });
