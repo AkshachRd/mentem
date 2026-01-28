@@ -1,4 +1,4 @@
-export type MemoryKind = 'note' | 'image' | 'quote' | 'article' | 'product';
+export type MemoryKind = 'note' | 'image' | 'quote' | 'article' | 'product' | 'card';
 
 export type BaseMemory = {
     id: string;
@@ -42,4 +42,16 @@ export type ProductMemory = BaseMemory & {
     currency?: string;
 };
 
-export type Memory = NoteMemory | ImageMemory | QuoteMemory | ArticleMemory | ProductMemory;
+export type CardMemory = BaseMemory & {
+    kind: 'card';
+    frontSide: string;
+    backSide: string;
+};
+
+export type Memory =
+    | NoteMemory
+    | ImageMemory
+    | QuoteMemory
+    | ArticleMemory
+    | ProductMemory
+    | CardMemory;

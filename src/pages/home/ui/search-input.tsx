@@ -4,7 +4,6 @@ import type { Item } from '../model/use-search';
 
 import { AnimatePresence } from 'framer-motion';
 import { useCallback, useState } from 'react';
-import { nanoid } from 'nanoid';
 
 import { useSearch } from '../model/use-search';
 
@@ -75,10 +74,8 @@ export const SearchInput = ({ selectedTagIds, setSelectedTagIds }: SearchInputPr
     const handleCreateCard = useCallback(
         (backSide: string) => {
             addCard({
-                id: nanoid(),
                 frontSide: fieldState.inputValue,
                 backSide,
-                tagIds: [],
             });
         },
         [fieldState.inputValue, addCard],

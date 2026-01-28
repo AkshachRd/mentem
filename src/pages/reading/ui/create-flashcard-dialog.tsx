@@ -63,14 +63,10 @@ export function CreateFlashcardDialog({
     const handleSave = useCallback(() => {
         if (!frontSide.trim() || !backSide.trim()) return;
 
-        const newCard = {
-            id: crypto.randomUUID(),
+        addCard({
             frontSide: frontSide.trim(),
             backSide: backSide.trim(),
-            tagIds: [],
-        };
-
-        addCard(newCard);
+        });
         toast.success('Карточка создана');
         onOpenChange(false);
     }, [frontSide, backSide, addCard, onOpenChange]);

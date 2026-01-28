@@ -3,6 +3,11 @@ import { Card } from '../model/types';
 export function cardToMarkdown(card: Card): string {
     const fm = {
         id: card.id,
+        kind: card.kind,
+        title: card.title,
+        tldr: card.tldr,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
         tagIds: card.tagIds,
     };
     const yaml = toYAML(fm);

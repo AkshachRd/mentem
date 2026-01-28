@@ -27,11 +27,21 @@ export function parseCardMarkdown(content: string): Card | null {
     const frontSide = frontMatch[1].trim();
     const backSide = frontMatch[2].trim();
 
+    // MIGRATION: Handle old cards without timestamps
+    const now = Date.now();
+    const createdAt = fm.createdAt ? Number(fm.createdAt) : now;
+    const updatedAt = fm.updatedAt ? Number(fm.updatedAt) : now;
+
     return {
         id: String(fm.id),
+        kind: 'card' as const,
         frontSide,
         backSide,
         tagIds: Array.isArray(fm.tagIds) ? fm.tagIds.map(String) : [],
+        createdAt,
+        updatedAt,
+        title: fm.title ? String(fm.title) : undefined,
+        tldr: fm.tldr ? String(fm.tldr) : undefined,
     };
 }
 
