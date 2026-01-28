@@ -3,16 +3,23 @@
 import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 const useMedia = (queries: string[], values: number[], defaultValue: number): number => {
-    const get = () => values[queries.findIndex((q) => matchMedia?.(q).matches)] ?? defaultValue;
+    const get = () => {
+        if (typeof window === 'undefined') return defaultValue;
 
-    const [value, setValue] = useState<number>(get);
+        return values[queries.findIndex((q) => window.matchMedia(q).matches)] ?? defaultValue;
+    };
+
+    const [value, setValue] = useState<number>(defaultValue);
 
     useEffect(() => {
-        const handler = () => setValue(get);
+        setValue(get());
+        const handler = () => setValue(get());
 
-        queries.forEach((q) => matchMedia?.(q).addEventListener('change', handler));
+        const mediaQueryLists = queries.map((q) => window.matchMedia(q));
 
-        return () => queries.forEach((q) => matchMedia?.(q).removeEventListener('change', handler));
+        mediaQueryLists.forEach((mql) => mql.addEventListener('change', handler));
+
+        return () => mediaQueryLists.forEach((mql) => mql.removeEventListener('change', handler));
     }, [queries]);
 
     return value;
