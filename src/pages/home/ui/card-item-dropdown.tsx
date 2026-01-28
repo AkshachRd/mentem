@@ -43,6 +43,7 @@ export function CardItemDropdown({ card, onModalOpen }: CardItemDropdownProps) {
                     }}
                 >
                     <CardComponent
+                        showKindBadge
                         footerContent={card.backSide}
                         headerContent={card.frontSide}
                         revealBack={isCardHovered}

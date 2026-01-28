@@ -3,6 +3,7 @@ import { FC } from 'react';
 import { Spoiler } from 'spoiled';
 
 import { IBMPlexSerif } from '@/shared/config';
+import { Badge } from '@/shared/ui/badge';
 import { Separator } from '@/shared/ui/separator';
 import { Card, CardHeader, CardFooter } from '@/shared/ui/card';
 
@@ -11,6 +12,7 @@ interface CardComponentProps {
     footerContent?: string;
     revealBack?: boolean;
     className?: string;
+    showKindBadge?: boolean;
 }
 
 function getTextSizeClass(text?: string): string {
@@ -29,12 +31,18 @@ export const CardComponent: FC<CardComponentProps> = ({
     footerContent,
     revealBack = false,
     className,
+    showKindBadge = false,
 }) => {
     const headerSizeClass = getTextSizeClass(headerContent);
     const footerSizeClass = getTextSizeClass(footerContent);
 
     return (
-        <Card className={clsx('w-[380px] font-serif', IBMPlexSerif.variable, className)}>
+        <Card className={clsx('relative w-[380px] font-serif', IBMPlexSerif.variable, className)}>
+            {showKindBadge && (
+                <Badge className="absolute top-2 left-2" variant="secondary">
+                    card
+                </Badge>
+            )}
             <CardHeader
                 className={clsx(
                     'flex h-28 items-center justify-center overflow-hidden p-4 text-center',
