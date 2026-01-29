@@ -1,27 +1,42 @@
-import { Memory } from '../model/types';
+import type { Memory, MemoryKind } from '../model/types';
+import type { SerializeResult } from './kinds';
+
+import {
+    serializeNote,
+    serializeCard,
+    serializeImage,
+    serializeQuote,
+    serializeArticle,
+    serializeProduct,
+} from './kinds';
+
+type KindSerializer = (memory: Memory) => SerializeResult;
+
+const SERIALIZERS: Record<MemoryKind, KindSerializer> = {
+    note: serializeNote as KindSerializer,
+    card: serializeCard as KindSerializer,
+    image: serializeImage as KindSerializer,
+    quote: serializeQuote as KindSerializer,
+    article: serializeArticle as KindSerializer,
+    product: serializeProduct as KindSerializer,
+};
 
 export function memoryToMarkdown(memory: Memory): string {
+    const serializer = SERIALIZERS[memory.kind];
+    const { meta, body } = serializer(memory);
+
     const frontMatter: Record<string, unknown> = {
         id: memory.id,
         kind: memory.kind,
-        title: 'title' in memory ? memory.title : undefined,
+        title: memory.title,
+        tldr: memory.tldr,
         createdAt: memory.createdAt,
         updatedAt: memory.updatedAt,
         tagIds: memory.tagIds,
-        meta:
-            memory.kind === 'image'
-                ? { url: memory.url, alt: memory.alt }
-                : memory.kind === 'quote'
-                  ? { author: memory.author, sourceUrl: memory.sourceUrl }
-                  : memory.kind === 'article'
-                    ? { url: memory.url, excerpt: memory.excerpt, source: memory.source }
-                    : memory.kind === 'product'
-                      ? { url: memory.url, price: memory.price, currency: memory.currency }
-                      : undefined,
+        meta,
     };
 
     const yaml = toYAML(frontMatter);
-    const body = memory.kind === 'note' ? memory.content : '';
 
     return `---\n${yaml}\n---\n\n${body}`;
 }
@@ -52,7 +67,6 @@ function toYAML(obj: Record<string, unknown>): string {
 
 function formatScalar(value: unknown): string {
     if (typeof value === 'string') {
-        // wrap if contains special chars
         if (/[:#\-\n]/.test(value)) {
             return JSON.stringify(value);
         }

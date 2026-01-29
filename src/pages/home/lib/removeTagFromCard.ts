@@ -1,8 +1,8 @@
-import { useCardStore } from '@/entities/card';
+import { useMemoriesStore } from '@/entities/memory';
 import { useTagsStore } from '@/entities/tag';
 
 export const removeTagFromCard = (cardId: string, tagId: string): void => {
-    const { removeTagsFromCard, cards } = useCardStore.getState();
+    const { removeTagsFromCard, cards } = useMemoriesStore.getState();
     const { removeTag } = useTagsStore.getState();
 
     removeTagsFromCard(cardId, [tagId]);

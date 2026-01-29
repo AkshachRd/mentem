@@ -1,4 +1,18 @@
-import type { Memory } from '../model/types';
+import type { Memory, MemoryKind } from '../model/types';
+import type { ParseContext } from './kinds';
+
+import { parseNote, parseCard, parseImage, parseQuote, parseArticle, parseProduct } from './kinds';
+
+type KindParser = (ctx: ParseContext) => Memory | null;
+
+const PARSERS: Record<MemoryKind, KindParser> = {
+    note: parseNote,
+    card: parseCard,
+    image: parseImage,
+    quote: parseQuote,
+    article: parseArticle,
+    product: parseProduct,
+};
 
 export function parseMemoryMarkdown(content: string): Memory | null {
     const trimmed = content.trimStart();
@@ -12,68 +26,36 @@ export function parseMemoryMarkdown(content: string): Memory | null {
     const fmBlock = trimmed.slice(3, secondIdx).trim();
     const body = trimmed.slice(secondIdx + 4).trimStart();
 
-    const fm = parseSimpleYaml(fmBlock) as any;
+    const fm = parseSimpleYaml(fmBlock) as Record<string, unknown>;
 
     if (!fm || typeof fm !== 'object') return null;
 
-    const kind = String(fm.kind ?? 'note');
+    const kind = String(fm.kind ?? 'note') as MemoryKind;
+    const parser = PARSERS[kind];
 
-    if (kind === 'note') {
-        return {
+    if (!parser) return null;
+
+    const now = Date.now();
+    const ctx: ParseContext = {
+        base: {
             id: String(fm.id),
-            kind: 'note',
+            kind,
             title: fm.title ? String(fm.title) : undefined,
-            content: body ?? '',
-            createdAt: Number(fm.createdAt ?? Date.now()),
-            updatedAt: Number(fm.updatedAt ?? Date.now()),
+            tldr: fm.tldr ? String(fm.tldr) : undefined,
+            createdAt: fm.createdAt ? Number(fm.createdAt) : now,
+            updatedAt: fm.updatedAt ? Number(fm.updatedAt) : now,
             tagIds: Array.isArray(fm.tagIds) ? fm.tagIds.map(String) : [],
-        };
-    }
+        },
+        body,
+        meta: fm.meta as Record<string, unknown> | undefined,
+    };
 
-    // Non-note kinds: hydrate basic metadata only
-    const base = {
-        id: String(fm.id),
-        kind: kind as Memory['kind'],
-        title: fm.title ? String(fm.title) : undefined,
-        createdAt: Number(fm.createdAt ?? Date.now()),
-        updatedAt: Number(fm.updatedAt ?? Date.now()),
-        tagIds: Array.isArray(fm.tagIds) ? fm.tagIds.map(String) : [],
-    } as any;
-
-    if (kind === 'image')
-        return {
-            ...base,
-            url: String(fm.meta?.url ?? ''),
-            alt: fm.meta?.alt ? String(fm.meta.alt) : undefined,
-        };
-    if (kind === 'quote')
-        return {
-            ...base,
-            text: body ?? '',
-            author: fm.meta?.author ? String(fm.meta.author) : undefined,
-            sourceUrl: fm.meta?.sourceUrl ? String(fm.meta.sourceUrl) : undefined,
-        };
-    if (kind === 'article')
-        return {
-            ...base,
-            url: String(fm.meta?.url ?? ''),
-            excerpt: fm.meta?.excerpt ? String(fm.meta.excerpt) : undefined,
-            source: fm.meta?.source ? String(fm.meta.source) : undefined,
-        };
-    if (kind === 'product')
-        return {
-            ...base,
-            url: fm.meta?.url ? String(fm.meta.url) : undefined,
-            price: fm.meta?.price ? String(fm.meta.price) : undefined,
-            currency: fm.meta?.currency ? String(fm.meta.currency) : undefined,
-        };
-
-    return null;
+    return parser(ctx);
 }
 
 function parseSimpleYaml(yaml: string): unknown {
     const lines = yaml.split(/\r?\n/);
-    const stack: any[] = [{}];
+    const stack: unknown[] = [{}];
     const indents: number[] = [0];
 
     for (const raw of lines) {
@@ -87,10 +69,15 @@ function parseSimpleYaml(yaml: string): unknown {
         }
 
         if (line.startsWith('- ')) {
-            const arr = Array.isArray(stack[stack.length - 1])
-                ? stack[stack.length - 1]
-                : (stack[stack.length - 1] = []);
+            const current = stack[stack.length - 1];
+            const arr = Array.isArray(current) ? current : [];
 
+            if (!Array.isArray(current)) {
+                (stack[stack.length - 1] as Record<string, unknown>) = arr as unknown as Record<
+                    string,
+                    unknown
+                >;
+            }
             arr.push(parseScalar(line.slice(2)));
             continue;
         }
@@ -102,13 +89,13 @@ function parseSimpleYaml(yaml: string): unknown {
         const value = line.slice(idx + 1).trim();
 
         if (!value) {
-            const obj: any = {};
+            const obj: Record<string, unknown> = {};
 
-            (stack[stack.length - 1] as any)[key] = obj;
+            (stack[stack.length - 1] as Record<string, unknown>)[key] = obj;
             stack.push(obj);
             indents.push(indent + 2);
         } else {
-            (stack[stack.length - 1] as any)[key] = parseScalar(value);
+            (stack[stack.length - 1] as Record<string, unknown>)[key] = parseScalar(value);
         }
     }
 
@@ -120,7 +107,6 @@ function parseScalar(value: string): unknown {
     if (value === 'false') return false;
     if (/^[-]?\d+(?:\.\d+)?$/.test(value)) return Number(value);
     try {
-        // quoted string
         if (
             (value.startsWith('"') && value.endsWith('"')) ||
             (value.startsWith("'") && value.endsWith("'"))

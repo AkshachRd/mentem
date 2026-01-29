@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import { CardItem } from './card-item';
 
-import { useCardStore, Card } from '@/entities/card';
+import { Card } from '@/entities/card';
 import { useMemoriesStore, Memory } from '@/entities/memory';
 import { NoteItem } from '@/entities/memory/ui/note-item';
 import { NoteCreateItem } from '@/entities/memory/ui/note-create-item';
@@ -18,7 +18,7 @@ type HomeContentProps = {
 const COLUMN_WIDTH = 380;
 
 type CreatePlaceholder = { id: '__create__'; kind: '__create__' };
-type MasonryItem = Memory | Card | CreatePlaceholder;
+type MasonryItem = Memory | CreatePlaceholder;
 
 function estimateNoteHeight(note: NoteMemory): number {
     const horizontalPadding = 32;
@@ -47,12 +47,10 @@ function getMaxContentLines(note: NoteMemory): number {
 
 export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
     const { memories } = useMemoriesStore();
-    const { cards } = useCardStore();
 
     const allItems = useMemo(() => {
-        const combined: (Memory | Card)[] = [...memories, ...cards];
-        return combined.sort((a, b) => b.updatedAt - a.updatedAt);
-    }, [memories, cards]);
+        return [...memories].sort((a, b) => b.updatedAt - a.updatedAt);
+    }, [memories]);
 
     const filteredItems = useMemo(() => {
         if (selectedTagIds.length === 0) return allItems;

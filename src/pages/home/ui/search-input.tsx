@@ -9,7 +9,7 @@ import { useSearch } from '../model/use-search';
 
 import { CardCreationForm } from './card-creation-form';
 
-import { useCardStore } from '@/entities/card';
+import { useMemoriesStore } from '@/entities/memory';
 import {
     Combobox,
     ComboboxInput,
@@ -25,7 +25,7 @@ type SearchInputProps = {
 };
 
 export const SearchInput = ({ selectedTagIds, setSelectedTagIds }: SearchInputProps) => {
-    const { addCard } = useCardStore();
+    const { addCard } = useMemoriesStore();
     const [isCreating, setIsCreating] = useState(false);
     const [items, setItems] = useState<Item[]>([]);
 

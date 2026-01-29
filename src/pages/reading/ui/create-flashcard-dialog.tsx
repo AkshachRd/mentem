@@ -17,7 +17,7 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
-import { useCardStore } from '@/entities/card';
+import { useMemoriesStore } from '@/entities/memory';
 
 interface CreateFlashcardDialogProps {
     open: boolean;
@@ -36,7 +36,7 @@ export function CreateFlashcardDialog({
     const [backSide, setBackSide] = useState('');
 
     const { object, isLoading, generate, stop } = useGenerateFlashcard();
-    const addCard = useCardStore((state) => state.addCard);
+    const addCard = useMemoriesStore((state) => state.addCard);
 
     // Update form when AI generates content
     useEffect(() => {

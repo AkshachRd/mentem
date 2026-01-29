@@ -8,12 +8,12 @@ import { CardStack } from './card-stack';
 import { Side } from './side';
 import { ShowAnswerButton } from './show-answer-button';
 
-import { useCardStore } from '@/entities/card';
+import { useMemoriesStore } from '@/entities/memory';
 
 const swipeConfidenceThreshold = 200;
 
 export function Learn() {
-    const { cards } = useCardStore();
+    const { cards } = useMemoriesStore();
     const [exitDirection, setExitDirection] = useState<number>(0);
     const [leftActive, setLeftActive] = useState(false);
     const [rightActive, setRightActive] = useState(false);

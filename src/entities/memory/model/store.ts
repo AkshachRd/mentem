@@ -1,13 +1,15 @@
 import { create } from 'zustand';
+import { nanoid } from 'nanoid';
 
 import { memoryToMarkdown } from '../lib';
 
-import { Memory } from './types';
+import { CardInput, CardMemory, Memory } from './types';
 
-import { deleteFile, fileExists, getCollectionDir, writeMarkdownFile } from '@/shared/lib/fs';
+import { deleteFile, fileExists, getMemoriesDir, writeMarkdownFile } from '@/shared/lib/fs';
 
 export type MemoriesState = {
     memories: Memory[];
+    // Generic memory methods
     addMemory: (memory: Memory) => void;
     updateMemory: (id: string, updater: (current: Memory) => Memory) => void;
     removeMemory: (id: string) => void;
@@ -15,6 +17,13 @@ export type MemoriesState = {
     removeTagsFromMemory: (memoryId: string, tagIds: string[]) => void;
     clearMemories: () => void;
     hydrate: (memories: Memory[]) => void;
+    // Card-specific convenience methods
+    cards: CardMemory[];
+    addCard: (input: CardInput) => CardMemory;
+    updateCard: (id: string, updater: (current: CardMemory) => CardMemory) => void;
+    removeCard: (id: string) => void;
+    addTagsToCard: (cardId: string, tagIds: string[]) => void;
+    removeTagsFromCard: (cardId: string, tagIds: string[]) => void;
 };
 
 export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
@@ -22,7 +31,7 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
     addMemory: (memory) => {
         void (async () => {
             try {
-                const dir = await getCollectionDir('memories');
+                const dir = await getMemoriesDir();
                 const fileName = `${memory.id}.md`;
 
                 await writeMarkdownFile(dir, fileName, memoryToMarkdown(memory));
@@ -38,10 +47,11 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
         }));
         void (async () => {
             try {
-                const dir = await getCollectionDir('memories');
                 const current = get().memories.find((m) => m.id === id);
 
                 if (current) {
+                    const dir = await getMemoriesDir();
+
                     await writeMarkdownFile(dir, `${id}.md`, memoryToMarkdown(current));
                 }
             } catch (error) {
@@ -50,15 +60,19 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
         })();
     },
     removeMemory: (id) => {
+        const memory = get().memories.find((m) => m.id === id);
+
         set((state) => ({
             memories: state.memories.filter((m) => m.id !== id),
         }));
         void (async () => {
             try {
-                const dir = await getCollectionDir('memories');
+                if (memory) {
+                    const dir = await getMemoriesDir();
 
-                if (await fileExists(dir, `${id}.md`)) {
-                    await deleteFile(dir, `${id}.md`);
+                    if (await fileExists(dir, `${id}.md`)) {
+                        await deleteFile(dir, `${id}.md`);
+                    }
                 }
             } catch (error) {
                 console.error('[mem] delete -> fail', error);
@@ -73,10 +87,11 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
         }));
         void (async () => {
             try {
-                const dir = await getCollectionDir('memories');
                 const current = get().memories.find((m) => m.id === memoryId);
 
                 if (current) {
+                    const dir = await getMemoriesDir();
+
                     await writeMarkdownFile(dir, `${memoryId}.md`, memoryToMarkdown(current));
                 }
             } catch (error) {
@@ -97,10 +112,11 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
         }));
         void (async () => {
             try {
-                const dir = await getCollectionDir('memories');
                 const current = get().memories.find((m) => m.id === memoryId);
 
                 if (current) {
+                    const dir = await getMemoriesDir();
+
                     await writeMarkdownFile(dir, `${memoryId}.md`, memoryToMarkdown(current));
                 }
             } catch (error) {
@@ -110,4 +126,94 @@ export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
     },
     clearMemories: () => set(() => ({ memories: [] })),
     hydrate: (memories) => set(() => ({ memories })),
+
+    // Card-specific methods
+    get cards() {
+        return get().memories.filter((m): m is CardMemory => m.kind === 'card');
+    },
+    addCard: (input) => {
+        const now = Date.now();
+        const card: CardMemory = {
+            id: input.id ?? nanoid(),
+            kind: 'card',
+            frontSide: input.frontSide,
+            backSide: input.backSide,
+            tagIds: input.tagIds ?? [],
+            createdAt: input.createdAt ?? now,
+            updatedAt: input.updatedAt ?? now,
+            title: input.title,
+            tldr: input.tldr,
+        };
+
+        get().addMemory(card);
+
+        return card;
+    },
+    updateCard: (id, updater) => {
+        const now = Date.now();
+
+        get().updateMemory(id, (m) => {
+            if (m.kind !== 'card') return m;
+
+            return { ...updater(m as CardMemory), updatedAt: now };
+        });
+    },
+    removeCard: (id) => {
+        get().removeMemory(id);
+    },
+    addTagsToCard: (cardId, tagIds) => {
+        const now = Date.now();
+
+        set((state) => ({
+            memories: state.memories.map((m) =>
+                m.id === cardId && m.kind === 'card'
+                    ? { ...m, tagIds: [...m.tagIds, ...tagIds], updatedAt: now }
+                    : m,
+            ),
+        }));
+        void (async () => {
+            try {
+                const current = get().memories.find((m) => m.id === cardId);
+
+                if (current) {
+                    const dir = await getMemoriesDir();
+
+                    await writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+                }
+            } catch (error) {
+                console.error('[card] addTags -> write fail', error);
+            }
+        })();
+    },
+    removeTagsFromCard: (cardId, tagIds) => {
+        const now = Date.now();
+
+        set((state) => ({
+            memories: state.memories.map((m) =>
+                m.id === cardId && m.kind === 'card'
+                    ? {
+                          ...m,
+                          tagIds: m.tagIds.filter((id) => !tagIds.includes(id)),
+                          updatedAt: now,
+                      }
+                    : m,
+            ),
+        }));
+        void (async () => {
+            try {
+                const current = get().memories.find((m) => m.id === cardId);
+
+                if (current) {
+                    const dir = await getMemoriesDir();
+
+                    await writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+                }
+            } catch (error) {
+                console.error('[card] removeTags -> write fail', error);
+            }
+        })();
+    },
 }));
+
+// Backward compatibility alias
+export { useMemoriesStore as useCardStore };

@@ -48,6 +48,17 @@ export type CardMemory = BaseMemory & {
     backSide: string;
 };
 
+export type CardInput = {
+    id?: string;
+    frontSide: string;
+    backSide: string;
+    tagIds?: string[];
+    title?: string;
+    tldr?: string;
+    createdAt?: number;
+    updatedAt?: number;
+};
+
 export type Memory =
     | NoteMemory
     | ImageMemory

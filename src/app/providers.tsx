@@ -2,7 +2,6 @@
 
 import type { ThemeProviderProps } from 'next-themes';
 import type { Memory } from '@/entities/memory/model/types';
-import type { Card } from '@/entities/card/model/types';
 import type { Tag } from '@/entities/tag/model/types';
 
 import * as React from 'react';
@@ -13,11 +12,9 @@ import { nanoid } from 'nanoid';
 import { listen } from '@tauri-apps/api/event';
 
 import { useMemoriesStore } from '@/entities/memory/model/store';
-import { useCardStore } from '@/entities/card/model/store';
 import { useTagsStore } from '@/entities/tag/model/store';
-import { getCollectionDir, listFiles, readMarkdownFile } from '@/shared/lib/fs';
+import { getMemoriesDir, listFiles, readMarkdownFile } from '@/shared/lib/fs';
 import { parseMemoryMarkdown } from '@/entities/memory/lib/parse';
-import { parseCardMarkdown } from '@/entities/card/lib/parse';
 
 export interface ProvidersProps {
     children: React.ReactNode;
@@ -32,50 +29,22 @@ declare module '@react-types/shared' {
 
 export function Providers({ children, themeProps }: ProvidersProps) {
     const addMemory = useMemoriesStore((s) => s.addMemory);
-    const addCard = useCardStore((s) => s.addCard);
     const addTag = useTagsStore((s) => s.addTag);
-    // hydration hooks can be added later for parsing disk files
 
     React.useEffect(() => {
         // On startup, hydrate/migrate
         (async () => {
             try {
-                const memoriesDir = await getCollectionDir('memories');
-                const cardsDir = await getCollectionDir('cards');
-                const tagsDir = await getCollectionDir('tags');
-
-                const [memFiles, cardFiles] = await Promise.all([
-                    listFiles(memoriesDir),
-                    listFiles(cardsDir),
-                    listFiles(tagsDir),
-                ]);
-
                 // Hydrate memories from disk
-                try {
-                    const memoryEntries = memFiles.filter((f) => f.name?.endsWith('.md'));
+                const memoriesDir = await getMemoriesDir();
+                const files = await listFiles(memoriesDir);
+                const mdFiles = files.filter((f) => f.name?.endsWith('.md'));
 
-                    for (const entry of memoryEntries) {
-                        const content = await readMarkdownFile(memoriesDir, entry.name!);
-                        const memory = parseMemoryMarkdown(content);
+                for (const entry of mdFiles) {
+                    const content = await readMarkdownFile(memoriesDir, entry.name!);
+                    const memory = parseMemoryMarkdown(content);
 
-                        if (memory) addMemory(memory);
-                    }
-                } catch {
-                    /* ignore */
-                }
-
-                // Hydrate cards from disk
-                try {
-                    const cardEntries = cardFiles.filter((f) => f.name?.endsWith('.md'));
-
-                    for (const entry of cardEntries) {
-                        const content = await readMarkdownFile(cardsDir, entry.name!);
-                        const card = parseCardMarkdown(content);
-
-                        if (card) addCard(card);
-                    }
-                } catch {
-                    /* ignore */
+                    if (memory) addMemory(memory);
                 }
 
                 // Migrate from old zustand localStorage if present (one-time)
@@ -105,7 +74,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                         };
 
                         const memState = readPersist<{ memories?: Memory[] }>('memories');
-                        const cardState = readPersist<{ cards?: Card[] }>('cards');
+                        const cardState = readPersist<{ cards?: Memory[] }>('cards');
                         const tagState = readPersist<{ tags?: Tag[] }>('tags');
 
                         if (memState?.memories) {
@@ -113,7 +82,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                         }
 
                         if (cardState?.cards) {
-                            for (const c of cardState.cards) addCard(c);
+                            for (const c of cardState.cards) addMemory(c);
                         }
 
                         if (tagState?.tags) {
@@ -215,7 +184,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                 /* ignore */
             }
         };
-    }, [addMemory, addCard, addTag]);
+    }, [addMemory, addTag]);
 
     return <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>;
 }

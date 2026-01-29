@@ -1,3 +1,4 @@
 export { CardComponent } from './ui/card-component';
-export { useCardStore } from './model/store';
-export type { Card, CardInput } from './model/types';
+// Re-export from memory store for backward compatibility
+export { useCardStore } from '@/entities/memory';
+export type { CardMemory as Card, CardInput } from '@/entities/memory';
