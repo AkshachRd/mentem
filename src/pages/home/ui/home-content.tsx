@@ -5,10 +5,23 @@ import { useMemo } from 'react';
 import { CardItem } from './card-item';
 
 import { Card } from '@/entities/card';
-import { useMemoriesStore, Memory } from '@/entities/memory';
-import { NoteItem } from '@/entities/memory/ui/note-item';
+import {
+    useMemoriesStore,
+    Memory,
+    NoteItem,
+    QuoteItem,
+    ImageItem,
+    ArticleItem,
+    ProductItem,
+} from '@/entities/memory';
 import { NoteCreateItem } from '@/entities/memory/ui/note-create-item';
-import { NoteMemory } from '@/entities/memory/model/types';
+import {
+    NoteMemory,
+    QuoteMemory,
+    ImageMemory,
+    ArticleMemory,
+    ProductMemory,
+} from '@/entities/memory/model/types';
 import { Masonry } from '@/shared/ui/masonry';
 
 type HomeContentProps = {
@@ -54,6 +67,7 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
 
     const filteredItems = useMemo(() => {
         if (selectedTagIds.length === 0) return allItems;
+
         return allItems.filter((item) => item.tagIds.some((id) => selectedTagIds.includes(id)));
     }, [allItems, selectedTagIds]);
 
@@ -81,6 +95,18 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
                             memory={item as NoteMemory}
                         />
                     );
+                }
+                if (item.kind === 'quote') {
+                    return <QuoteItem memory={item as QuoteMemory} />;
+                }
+                if (item.kind === 'image') {
+                    return <ImageItem memory={item as ImageMemory} />;
+                }
+                if (item.kind === 'article') {
+                    return <ArticleItem memory={item as ArticleMemory} />;
+                }
+                if (item.kind === 'product') {
+                    return <ProductItem memory={item as ProductMemory} />;
                 }
 
                 return null;

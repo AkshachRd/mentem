@@ -12,10 +12,12 @@ export function SettingsTab() {
     const enableAnimations = useSettingsStore((s) => s.enableAnimations);
     const compactTables = useSettingsStore((s) => s.compactTables);
     const aiModel = useSettingsStore((s) => s.aiModel);
+    const autoGenerateTags = useSettingsStore((s) => s.autoGenerateTags);
     const destinationDir = useSettingsStore((s) => s.destinationDir);
     const setEnableAnimations = useSettingsStore((s) => s.setEnableAnimations);
     const setCompactTables = useSettingsStore((s) => s.setCompactTables);
     const setAiModel = useSettingsStore((s) => s.setAiModel);
+    const setAutoGenerateTags = useSettingsStore((s) => s.setAutoGenerateTags);
     const setDestinationDir = useSettingsStore((s) => s.setDestinationDir);
     const reset = useSettingsStore((s) => s.reset);
 
@@ -73,6 +75,20 @@ export function SettingsTab() {
                                 <SelectItem value="flesh">Flesh</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Auto-generate tags</span>
+                            <span className="text-muted-foreground text-xs">
+                                Automatically generate tags when creating cards or notes
+                            </span>
+                        </div>
+                        <Switch
+                            aria-label="Auto-generate tags"
+                            checked={autoGenerateTags}
+                            onCheckedChange={setAutoGenerateTags}
+                        />
                     </div>
 
                     <div className="flex items-center justify-between">

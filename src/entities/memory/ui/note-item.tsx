@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { NoteMemory } from '../model/types';
 
 import { NoteMemoryModal } from './note-memory-modal';
+import { MemoryKindBadge } from './memory-kind-badge';
 
-import { Badge } from '@/shared/ui/badge';
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Separator } from '@/shared/ui/separator';
 import { Card, CardHeader, CardContent } from '@/shared/ui/card';
@@ -24,10 +24,8 @@ export function NoteItem({ memory, maxContentLines }: NoteItemProps) {
     return (
         <>
             <Card className="relative w-[380px] cursor-pointer" onClick={() => setDialogOpen(true)}>
-                <Badge className="absolute top-2 left-2" variant="secondary">
-                    note
-                </Badge>
-                <CardHeader className="flex flex-col items-start gap-1">
+                <MemoryKindBadge className="absolute top-2 left-2" kind="note" />
+                <CardHeader className="flex flex-col items-start gap-1 pt-4">
                     {tldr && <div className="text-muted-foreground text-xs">{tldr}</div>}
                     <div className="text-lg font-semibold">{title}</div>
                 </CardHeader>

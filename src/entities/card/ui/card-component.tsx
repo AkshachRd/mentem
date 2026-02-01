@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { Spoiler } from 'spoiled';
 
 import { IBMPlexSerif } from '@/shared/config';
-import { Badge } from '@/shared/ui/badge';
+import { MemoryKindBadge } from '@/entities/memory/ui/memory-kind-badge';
 import { Separator } from '@/shared/ui/separator';
 import { Card, CardHeader, CardFooter } from '@/shared/ui/card';
 
@@ -38,11 +38,7 @@ export const CardComponent: FC<CardComponentProps> = ({
 
     return (
         <Card className={clsx('relative w-[380px] font-serif', IBMPlexSerif.variable, className)}>
-            {showKindBadge && (
-                <Badge className="absolute top-2 left-2" variant="secondary">
-                    card
-                </Badge>
-            )}
+            {showKindBadge && <MemoryKindBadge className="absolute top-2 left-2" kind="card" />}
             <CardHeader
                 className={clsx(
                     'flex h-28 items-center justify-center overflow-hidden p-4 text-center',

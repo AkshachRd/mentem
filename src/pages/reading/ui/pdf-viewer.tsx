@@ -3,16 +3,16 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { invoke } from '@tauri-apps/api/core';
+import { toast } from 'sonner';
+
+import { SessionCardsPanel } from './session-cards-panel';
+import { PdfTextContextMenu } from './pdf-text-context-menu';
+import { CreateFlashcardDialog } from './create-flashcard-dialog';
 
 import { Switch } from '@/shared/ui/switch';
 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-
-import { toast } from 'sonner';
-
-import { PdfTextContextMenu } from './pdf-text-context-menu';
-import { CreateFlashcardDialog } from './create-flashcard-dialog';
 
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
@@ -21,7 +21,8 @@ import { useTextSelection, usePdfTextSelection } from '@/shared/lib/hooks';
 
 import type { PdfTextSelectionData } from '@/shared/lib/hooks';
 
-import { useMemoriesStore } from '@/entities/memory';
+import { useMemoriesStore, QuoteMemory } from '@/entities/memory';
+import { useAutoGenerateTags } from '@/entities/ai';
 import { useQuoteStore } from '@/entities/quote';
 
 import type { Quote } from '@/entities/quote';
@@ -67,6 +68,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
 
     // Memories store for adding notes
     const addMemory = useMemoriesStore((state) => state.addMemory);
+    const { generate: generateTags } = useAutoGenerateTags();
 
     // Quote store for chat integration
     const addPendingQuote = useQuoteStore((state) => state.addPendingQuote);
@@ -192,6 +194,39 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             clearSelection();
         },
         [clearSelection],
+    );
+
+    // Handle saving selected text as a quote
+    const handleSaveAsQuote = useCallback(
+        (text: string) => {
+            if (!text) return;
+
+            const fileName = filePath ? filePath.split(/[\\/]/).pop() || 'PDF' : 'PDF';
+
+            const newQuote: QuoteMemory = {
+                id: crypto.randomUUID(),
+                kind: 'quote',
+                text,
+                sourceUrl: filePath ?? undefined,
+                title: `From ${fileName} (Page ${pageNumber})`,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                tagIds: [],
+            };
+
+            addMemory(newQuote);
+            toast.success('Quote saved', {
+                description: `From ${fileName} (Page ${pageNumber})`,
+            });
+
+            // Auto-generate tags
+            generateTags(newQuote.id, 'quote', {
+                text: newQuote.text,
+            });
+
+            clearSelection();
+        },
+        [filePath, pageNumber, addMemory, generateTags, clearSelection],
     );
 
     // Функция для расчета масштаба page fit
@@ -727,6 +762,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                     onCopy={handleCopy}
                                     onCreateFlashcard={handleCreateFlashcard}
                                     onHighlight={handleHighlight}
+                                    onSaveAsQuote={handleSaveAsQuote}
                                     onSearch={handleSearch}
                                     onSendToChat={handleSendToChat}
                                 >
@@ -791,9 +827,14 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             <CreateFlashcardDialog
                 open={flashcardDialogOpen}
                 selectedText={flashcardText}
-                sourceContext={filePath ? `${filePath.split(/[\\/]/).pop()}, Page ${pageNumber}` : undefined}
+                sourceContext={
+                    filePath ? `${filePath.split(/[\\/]/).pop()}, Page ${pageNumber}` : undefined
+                }
                 onOpenChange={setFlashcardDialogOpen}
             />
+
+            {/* Session cards floating panel */}
+            <SessionCardsPanel />
         </Card>
     );
 }

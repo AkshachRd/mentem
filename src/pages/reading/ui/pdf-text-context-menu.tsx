@@ -3,7 +3,7 @@
 import type { PdfTextSelectionData } from '@/shared/lib/hooks';
 
 import { ReactNode, useState, useCallback, MouseEvent } from 'react';
-import { MessageSquare, Layers } from 'lucide-react';
+import { MessageSquare, Layers, Quote } from 'lucide-react';
 
 import {
     ContextMenu,
@@ -37,6 +37,7 @@ export interface PdfTextContextMenuProps {
     onSearch: (text: string) => void;
     onSendToChat?: (data: PdfTextSelectionData) => void;
     onCreateFlashcard?: (text: string) => void;
+    onSaveAsQuote?: (text: string) => void;
 }
 
 export function PdfTextContextMenu({
@@ -49,6 +50,7 @@ export function PdfTextContextMenu({
     onSearch,
     onSendToChat,
     onCreateFlashcard,
+    onSaveAsQuote,
 }: PdfTextContextMenuProps) {
     const [currentText, setCurrentText] = useState('');
     const [hasSelection, setHasSelection] = useState(false);
@@ -91,6 +93,13 @@ export function PdfTextContextMenu({
                         <ContextMenuItem onClick={() => onCreateFlashcard(currentText)}>
                             <Layers className="h-4 w-4 shrink-0" />
                             <span>Create Flashcard</span>
+                        </ContextMenuItem>
+                    )}
+
+                    {onSaveAsQuote && (
+                        <ContextMenuItem onClick={() => onSaveAsQuote(currentText)}>
+                            <Quote className="h-4 w-4 shrink-0" />
+                            <span>Save as Quote</span>
                         </ContextMenuItem>
                     )}
 

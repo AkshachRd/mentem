@@ -1,5 +1,7 @@
 'use client';
 
+import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
+
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { Send, Bot, User } from 'lucide-react';
@@ -10,14 +12,7 @@ import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
-import {
-    useQuoteStore,
-    QuoteBlock,
-    extractQuoteId,
-    formatQuoteForChat,
-} from '@/entities/quote';
-
-import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
+import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
 
 export function ChatPanel() {
     const { messages, sendMessage } = useChat({

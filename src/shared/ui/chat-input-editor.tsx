@@ -53,6 +53,7 @@ export function ChatInputEditor({
         if (!editorRef.current || isComposingRef.current) return;
 
         const text = editorRef.current.textContent || '';
+
         onChange(text);
     }, [onChange]);
 
@@ -72,6 +73,7 @@ export function ChatInputEditor({
     const handlePaste = useCallback((e: ClipboardEvent<HTMLDivElement>) => {
         e.preventDefault();
         const text = e.clipboardData.getData('text/plain');
+
         document.execCommand('insertText', false, text);
     }, []);
 
@@ -92,6 +94,7 @@ export function ChatInputEditor({
             // Move cursor to end
             const range = document.createRange();
             const sel = window.getSelection();
+
             range.selectNodeContents(editorRef.current);
             range.collapse(false);
             sel?.removeAllRanges();
@@ -115,7 +118,8 @@ export function ChatInputEditor({
                             <TooltipTrigger
                                 className={cn(
                                     'bg-primary/10 text-primary group inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2 py-1 text-xs',
-                                    onQuoteClick && 'cursor-pointer hover:bg-primary/20 transition-colors',
+                                    onQuoteClick &&
+                                        'hover:bg-primary/20 cursor-pointer transition-colors',
                                 )}
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -123,7 +127,9 @@ export function ChatInputEditor({
                                 }}
                             >
                                 <span className="line-clamp-1 max-w-[200px]">{quote.text}</span>
-                                <span className="text-muted-foreground text-[10px]">{quote.source}</span>
+                                <span className="text-muted-foreground text-[10px]">
+                                    {quote.source}
+                                </span>
                                 <button
                                     className="text-muted-foreground hover:text-foreground hover:bg-destructive/10 -mr-1 rounded p-0.5 transition-colors"
                                     type="button"
@@ -135,9 +141,11 @@ export function ChatInputEditor({
                                     <X className="h-3 w-3" />
                                 </button>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs">
+                            <TooltipContent className="max-w-xs" side="top">
                                 <p className="text-sm leading-relaxed">{quote.fullText}</p>
-                                <p className="text-muted-foreground mt-1 text-[10px]">{quote.source}</p>
+                                <p className="text-muted-foreground mt-1 text-[10px]">
+                                    {quote.source}
+                                </p>
                             </TooltipContent>
                         </Tooltip>
                     ))}
@@ -147,20 +155,21 @@ export function ChatInputEditor({
             {/* Contenteditable input */}
             <div
                 ref={editorRef}
-                className={cn(
-                    'text-foreground min-h-[20px] max-h-32 w-full overflow-y-auto whitespace-pre-wrap break-words outline-none',
-                    !value && 'empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)]',
-                )}
                 contentEditable
+                suppressContentEditableWarning
+                aria-multiline="true"
+                className={cn(
+                    'text-foreground max-h-32 min-h-[20px] w-full overflow-y-auto break-words whitespace-pre-wrap outline-none',
+                    !value &&
+                        'empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)]',
+                )}
                 data-placeholder={placeholder}
                 role="textbox"
-                aria-multiline="true"
-                suppressContentEditableWarning
+                onCompositionEnd={handleCompositionEnd}
+                onCompositionStart={handleCompositionStart}
                 onInput={handleInput}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                onCompositionStart={handleCompositionStart}
-                onCompositionEnd={handleCompositionEnd}
             />
         </div>
     );

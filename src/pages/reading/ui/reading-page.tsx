@@ -1,10 +1,20 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+
 import { FileSelector } from './file-selector';
-import { PdfViewer } from './pdf-viewer';
 
 import { ChatPanel } from '@/entities/ai/ui/chatPanel';
 import { useSettingsStore } from '@/entities/settings';
+
+const PdfViewer = dynamic(() => import('./pdf-viewer').then((mod) => mod.PdfViewer), {
+    ssr: false,
+    loading: () => (
+        <div className="flex h-full items-center justify-center">
+            <p className="text-muted-foreground">Loading PDF viewer...</p>
+        </div>
+    ),
+});
 
 export function ReadingPage() {
     const selectedPdfPath = useSettingsStore((state) => state.selectedPdfPath);

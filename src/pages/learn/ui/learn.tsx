@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PanInfo } from 'framer-motion';
 import { useKeyboard } from 'react-aria';
+import { useSearchParams } from 'next/navigation';
 
 import { CardStack } from './card-stack';
 import { Side } from './side';
@@ -12,8 +13,25 @@ import { useMemoriesStore } from '@/entities/memory';
 
 const swipeConfidenceThreshold = 200;
 
-export function Learn() {
-    const { cards } = useMemoriesStore();
+type LearnProps = {
+    sessionCardIds?: string[];
+};
+
+export function Learn({ sessionCardIds }: LearnProps) {
+    const searchParams = useSearchParams();
+    const { cards: allCards } = useMemoriesStore();
+
+    // Filter cards by session if provided
+    const cards = useMemo(() => {
+        const sessionParam = searchParams?.get('session');
+        const idsToFilter = sessionCardIds ?? (sessionParam ? sessionParam.split(',') : null);
+
+        if (!idsToFilter) return allCards;
+
+        const idSet = new Set(idsToFilter);
+
+        return allCards.filter((card) => idSet.has(card.id));
+    }, [allCards, sessionCardIds, searchParams]);
     const [exitDirection, setExitDirection] = useState<number>(0);
     const [leftActive, setLeftActive] = useState(false);
     const [rightActive, setRightActive] = useState(false);

@@ -5,6 +5,7 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useGenerateFlashcard } from '../model/use-generate-flashcard';
+import { useSessionCardsStore } from '../model/use-session-cards';
 
 import {
     Dialog,
@@ -18,6 +19,7 @@ import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
 import { useMemoriesStore } from '@/entities/memory';
+import { useAutoGenerateTags } from '@/entities/ai';
 
 interface CreateFlashcardDialogProps {
     open: boolean;
@@ -37,6 +39,8 @@ export function CreateFlashcardDialog({
 
     const { object, isLoading, generate, stop } = useGenerateFlashcard();
     const addCard = useMemoriesStore((state) => state.addCard);
+    const { generate: generateTags } = useAutoGenerateTags();
+    const addSessionCard = useSessionCardsStore((state) => state.addCard);
 
     // Update form when AI generates content
     useEffect(() => {
@@ -63,13 +67,29 @@ export function CreateFlashcardDialog({
     const handleSave = useCallback(() => {
         if (!frontSide.trim() || !backSide.trim()) return;
 
-        addCard({
+        const card = addCard({
             frontSide: frontSide.trim(),
             backSide: backSide.trim(),
         });
+
         toast.success('Карточка создана');
+
+        // Add to session for quick review
+        addSessionCard({
+            id: card.id,
+            frontSide: card.frontSide,
+            backSide: card.backSide,
+            createdAt: card.createdAt,
+        });
+
+        // Auto-generate tags for the new card
+        generateTags(card.id, 'card', {
+            frontSide: card.frontSide,
+            backSide: card.backSide,
+        });
+
         onOpenChange(false);
-    }, [frontSide, backSide, addCard, onOpenChange]);
+    }, [frontSide, backSide, addCard, addSessionCard, generateTags, onOpenChange]);
 
     const handleClose = useCallback(() => {
         if (isLoading) {

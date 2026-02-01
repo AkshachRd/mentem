@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useMemoriesStore } from '../model/store';
-import { NoteMemory } from '../model/types';
+import { QuoteMemory } from '../model/types';
 
 import { useAutoGenerateTags } from '@/entities/ai';
 import { TagComponent } from '@/entities/tag';
@@ -17,21 +17,22 @@ import { Textarea } from '@/shared/ui/textarea';
 import { Field, FieldLabel } from '@/shared/ui/field';
 import { Card, CardContent } from '@/shared/ui/card';
 
-type NoteMemoryModalProps = {
-    memory?: NoteMemory;
+type QuoteMemoryModalProps = {
+    memory?: QuoteMemory;
     onClose: () => void;
 };
 
-export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
+export function QuoteMemoryModal({ memory, onClose }: QuoteMemoryModalProps) {
     const isEditing = Boolean(memory);
 
     const { addMemory, updateMemory } = useMemoriesStore();
     const { tags, addTag } = useTagsStore();
     const { generate: generateTags } = useAutoGenerateTags();
 
+    const [text, setText] = useState<string>(memory?.text ?? '');
+    const [author, setAuthor] = useState<string>(memory?.author ?? '');
+    const [sourceUrl, setSourceUrl] = useState<string>(memory?.sourceUrl ?? '');
     const [title, setTitle] = useState<string>(memory?.title ?? '');
-    const [tldr, setTldr] = useState<string>(memory?.tldr ?? '');
-    const [content, setContent] = useState<string>(memory?.content ?? '');
     const [tagInput, setTagInput] = useState<string>('');
     const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
         new Set(memory?.tagIds ?? []),
@@ -39,9 +40,10 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
 
     useEffect(() => {
         if (memory) {
+            setText(memory.text);
+            setAuthor(memory.author ?? '');
+            setSourceUrl(memory.sourceUrl ?? '');
             setTitle(memory.title ?? '');
-            setTldr(memory.tldr ?? '');
-            setContent(memory.content);
             setSelectedTagIds(new Set(memory.tagIds));
         }
     }, [memory]);
@@ -73,41 +75,41 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
         });
     };
 
-    const handleSave = async (onClose: () => void) => {
+    const handleSave = async () => {
         const now = Date.now();
         const tagIds = Array.from(selectedTagIds);
 
         if (isEditing && memory) {
             updateMemory(memory.id, (current) => ({
                 ...current,
+                text,
+                author: author || undefined,
+                sourceUrl: sourceUrl || undefined,
                 title: title || undefined,
-                tldr: tldr || undefined,
-                content,
                 tagIds,
                 updatedAt: now,
             }));
-            toast.success('Note saved');
+            toast.success('Quote saved');
         } else {
-            const newMemory: NoteMemory = {
+            const newMemory: QuoteMemory = {
                 id: nanoid(),
-                kind: 'note',
+                kind: 'quote',
+                text,
+                author: author || undefined,
+                sourceUrl: sourceUrl || undefined,
                 title: title || undefined,
-                tldr: tldr || undefined,
-                content,
                 createdAt: now,
                 updatedAt: now,
                 tagIds,
             };
 
             addMemory(newMemory);
-            toast.success('Note saved');
+            toast.success('Quote saved');
 
-            // Auto-generate tags if no tags were manually selected
             if (tagIds.length === 0) {
-                generateTags(newMemory.id, 'note', {
-                    title: newMemory.title,
-                    tldr: newMemory.tldr,
-                    content: newMemory.content,
+                generateTags(newMemory.id, 'quote', {
+                    text: newMemory.text,
+                    author: newMemory.author,
                 });
             }
         }
@@ -115,41 +117,49 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
         onClose();
     };
 
-    const isSaveDisabled = content.trim().length === 0;
+    const isSaveDisabled = text.trim().length === 0;
 
     return (
-        <div className="flex h-[600px]">
+        <div className="flex h-[500px]">
             <div className="flex flex-1 flex-col gap-3 p-2">
                 <Field>
-                    <FieldLabel>Title</FieldLabel>
+                    <FieldLabel>Title (optional)</FieldLabel>
                     <Input
-                        placeholder="Optional title"
+                        placeholder="Optional title for the quote"
                         value={title}
                         onInput={(e) => setTitle(e.currentTarget.value)}
                     />
                 </Field>
-                <Field>
-                    <FieldLabel>TL;DR</FieldLabel>
-                    <Textarea
-                        placeholder="Optional short summary"
-                        rows={2}
-                        value={tldr}
-                        onInput={(e) => setTldr(e.currentTarget.value)}
-                    />
-                </Field>
                 <Field className="min-h-0 grow">
-                    <FieldLabel>Content</FieldLabel>
+                    <FieldLabel>Quote text</FieldLabel>
                     <Textarea
                         className="h-full resize-none"
-                        placeholder="Write your note..."
-                        rows={10}
-                        value={content}
-                        onInput={(e) => setContent(e.currentTarget.value)}
+                        placeholder="Enter the quote..."
+                        rows={6}
+                        value={text}
+                        onInput={(e) => setText(e.currentTarget.value)}
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Author</FieldLabel>
+                    <Input
+                        placeholder="Who said this?"
+                        value={author}
+                        onInput={(e) => setAuthor(e.currentTarget.value)}
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Source URL</FieldLabel>
+                    <Input
+                        placeholder="https://..."
+                        type="url"
+                        value={sourceUrl}
+                        onInput={(e) => setSourceUrl(e.currentTarget.value)}
                     />
                 </Field>
                 <div className="flex gap-2">
-                    <Button disabled={isSaveDisabled} onClick={() => handleSave(onClose)}>
-                        {isEditing ? 'Save changes' : 'Create note'}
+                    <Button disabled={isSaveDisabled} onClick={handleSave}>
+                        {isEditing ? 'Save changes' : 'Create quote'}
                     </Button>
                     <Button variant="destructive" onClick={onClose}>
                         Cancel
@@ -157,7 +167,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                 </div>
             </div>
             <Separator orientation="vertical" />
-            <div className="flex w-80 flex-col gap-4 p-4">
+            <div className="flex w-64 flex-col gap-4 p-4">
                 <Card className="w-full">
                     <CardContent className="flex flex-row flex-wrap items-center gap-2">
                         {selectedTags.map((tag) => (
@@ -172,7 +182,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                         <div className="flex grow flex-row gap-2">
                             <Input
                                 className="grow"
-                                placeholder="Add tag by name"
+                                placeholder="Add tag"
                                 value={tagInput}
                                 onInput={(e) => setTagInput(e.currentTarget.value)}
                                 onKeyDown={(e) => {
@@ -183,6 +193,7 @@ export function NoteMemoryModal({ memory, onClose }: NoteMemoryModalProps) {
                             />
                             <Button
                                 disabled={tagInput.trim().length === 0}
+                                size="sm"
                                 onClick={handleAddTagByName}
                             >
                                 Add
