@@ -28,10 +28,10 @@ function TooltipContent({
     return (
         <TooltipPrimitive.Portal>
             <TooltipPrimitive.Positioner
-                side={side}
-                sideOffset={sideOffset}
                 align={align}
                 className="z-50"
+                side={side}
+                sideOffset={sideOffset}
             >
                 <TooltipPrimitive.Popup
                     className={cn(
@@ -49,7 +49,10 @@ function TooltipContent({
 function TooltipArrow({ className, ...props }: TooltipPrimitive.Arrow.Props) {
     return (
         <TooltipPrimitive.Arrow
-            className={cn('fill-popover z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-sm border', className)}
+            className={cn(
+                'fill-popover z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-sm border',
+                className,
+            )}
             data-slot="tooltip-arrow"
             {...props}
         />

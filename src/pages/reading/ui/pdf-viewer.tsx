@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { invoke } from '@tauri-apps/api/core';
 
 import { Switch } from '@/shared/ui/switch';
 
@@ -35,6 +34,7 @@ if (typeof window !== 'undefined') {
 
 type PdfViewerProps = {
     filePath: string | null;
+    pdfContent?: string;
 };
 
 type ViewMode = 'single' | 'all';
@@ -43,7 +43,7 @@ const ZOOM_STEP = 0.25;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3.0;
 
-export function PdfViewer({ filePath }: PdfViewerProps) {
+export function PdfViewer({ filePath, pdfContent }: PdfViewerProps) {
     const [numPages, setNumPages] = useState<number | null>(null);
     const [pageNumber, setPageNumber] = useState(1);
     const [viewMode, setViewMode] = useState<ViewMode>('single');
@@ -376,36 +376,22 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             setPageWidth(null);
             setSavedFitScale(null);
 
-            // Конвертируем локальный файл в Blob URL для react-pdf
-            const loadFile = async () => {
+            // Если есть PDF content - создаем Blob URL
+            if (pdfContent) {
                 try {
-                    // Используем команду invoke для чтения бинарного файла
-                    const fileData = await invoke<number[]>('fs_any_read_binary_file', {
-                        path: filePath,
-                    });
-                    // Конвертируем массив чисел в Uint8Array
-                    const uint8Array = Uint8Array.from(fileData);
+                    const uint8Array = new TextEncoder().encode(pdfContent);
                     const blob = new Blob([uint8Array], { type: 'application/pdf' });
                     const url = URL.createObjectURL(blob);
 
                     setFileUrl(url);
                 } catch (err) {
                     // eslint-disable-next-line no-console
-                    console.error('Error reading file:', err);
-                    setError('Failed to read PDF file');
+                    console.error('Error creating PDF URL:', err);
+                    setError('Failed to create PDF file');
                 }
-            };
-
-            loadFile();
-
-            // Cleanup: revoke object URL when component unmounts or file changes
-            return () => {
-                if (fileUrl) {
-                    URL.revokeObjectURL(fileUrl);
-                }
-            };
+            }
         }
-    }, [filePath]);
+    }, [filePath, pdfContent]);
 
     // Handle navigation from quote clicks in chat
     useEffect(() => {
@@ -791,7 +777,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
             <CreateFlashcardDialog
                 open={flashcardDialogOpen}
                 selectedText={flashcardText}
-                sourceContext={filePath ? `${filePath.split(/[\\/]/).pop()}, Page ${pageNumber}` : undefined}
+                sourceContext={
+                    filePath ? `${filePath.split(/[\\/]/).pop()}, Page ${pageNumber}` : undefined
+                }
                 onOpenChange={setFlashcardDialogOpen}
             />
         </Card>

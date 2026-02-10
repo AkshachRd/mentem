@@ -54,6 +54,7 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
 
     const filteredItems = useMemo(() => {
         if (selectedTagIds.length === 0) return allItems;
+
         return allItems.filter((item) => item.tagIds.some((id) => selectedTagIds.includes(id)));
     }, [allItems, selectedTagIds]);
 

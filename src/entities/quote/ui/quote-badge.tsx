@@ -32,7 +32,7 @@ export function QuoteBadge({ quote, onRemove, className }: QuoteBadgeProps) {
             </div>
             {onRemove && (
                 <button
-                    className="text-muted-foreground hover:text-foreground hover:bg-muted -mr-1 -mt-1 rounded p-0.5 transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted -mt-1 -mr-1 rounded p-0.5 transition-colors"
                     type="button"
                     onClick={() => onRemove(quote.id)}
                 >

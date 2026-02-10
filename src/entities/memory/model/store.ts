@@ -4,12 +4,10 @@ import { nanoid } from 'nanoid';
 import { memoryToMarkdown } from '../lib';
 
 import { CardInput, CardMemory, Memory } from './types';
-
-import { deleteFile, fileExists, getMemoriesDir, writeMarkdownFile } from '@/shared/lib/fs';
+import { getFileSystemClient } from '@/shared/lib/fs';
 
 export type MemoriesState = {
     memories: Memory[];
-    // Generic memory methods
     addMemory: (memory: Memory) => void;
     updateMemory: (id: string, updater: (current: Memory) => Memory) => void;
     removeMemory: (id: string) => void;
@@ -17,7 +15,6 @@ export type MemoriesState = {
     removeTagsFromMemory: (memoryId: string, tagIds: string[]) => void;
     clearMemories: () => void;
     hydrate: (memories: Memory[]) => void;
-    // Card-specific convenience methods
     cards: CardMemory[];
     addCard: (input: CardInput) => CardMemory;
     updateCard: (id: string, updater: (current: CardMemory) => CardMemory) => void;
@@ -26,194 +23,204 @@ export type MemoriesState = {
     removeTagsFromCard: (cardId: string, tagIds: string[]) => void;
 };
 
-export const useMemoriesStore = create<MemoriesState>()((set, get) => ({
-    memories: [],
-    addMemory: (memory) => {
-        void (async () => {
-            try {
-                const dir = await getMemoriesDir();
-                const fileName = `${memory.id}.md`;
+export const useMemoriesStore = create<MemoriesState>()((set, get) => {
+    const fs = getFileSystemClient()!;
 
-                await writeMarkdownFile(dir, fileName, memoryToMarkdown(memory));
-            } catch (error) {
-                console.error('[mem] add -> write fail', error);
-            }
-        })();
-        set((state) => ({ memories: [...state.memories, memory] }));
-    },
-    updateMemory: (id, updater) => {
-        set((state) => ({
-            memories: state.memories.map((m) => (m.id === id ? updater(m) : m)),
-        }));
-        void (async () => {
-            try {
-                const current = get().memories.find((m) => m.id === id);
+    return {
+        memories: [],
+        addMemory: (memory) => {
+            void (async () => {
+                try {
+                    const dir = await fs.getMemoriesDir();
+                    const fileName = `${memory.id}.md`;
 
-                if (current) {
-                    const dir = await getMemoriesDir();
-
-                    await writeMarkdownFile(dir, `${id}.md`, memoryToMarkdown(current));
+                    await fs.writeMarkdownFile(dir, fileName, memoryToMarkdown(memory));
+                } catch (error) {
+                    console.error('[mem] add -> write fail', error);
                 }
-            } catch (error) {
-                console.error('[mem] update -> write fail', error);
-            }
-        })();
-    },
-    removeMemory: (id) => {
-        const memory = get().memories.find((m) => m.id === id);
+            })();
+            set((state) => ({ memories: [...state.memories, memory] }));
+        },
+        updateMemory: (id, updater) => {
+            set((state) => ({
+                memories: state.memories.map((m) => (m.id === id ? updater(m) : m)),
+            }));
+            void (async () => {
+                try {
+                    const current = get().memories.find((m) => m.id === id);
 
-        set((state) => ({
-            memories: state.memories.filter((m) => m.id !== id),
-        }));
-        void (async () => {
-            try {
-                if (memory) {
-                    const dir = await getMemoriesDir();
+                    if (current) {
+                        const dir = await fs.getMemoriesDir();
 
-                    if (await fileExists(dir, `${id}.md`)) {
-                        await deleteFile(dir, `${id}.md`);
+                        await fs.writeMarkdownFile(dir, `${id}.md`, memoryToMarkdown(current));
                     }
+                } catch (error) {
+                    console.error('[mem] update -> write fail', error);
                 }
-            } catch (error) {
-                console.error('[mem] delete -> fail', error);
-            }
-        })();
-    },
-    addTagsToMemory: (memoryId, tagIds) => {
-        set((state) => ({
-            memories: state.memories.map((m) =>
-                m.id === memoryId ? { ...m, tagIds: [...m.tagIds, ...tagIds] } : m,
-            ),
-        }));
-        void (async () => {
-            try {
-                const current = get().memories.find((m) => m.id === memoryId);
+            })();
+        },
+        removeMemory: (id) => {
+            const memory = get().memories.find((m) => m.id === id);
 
-                if (current) {
-                    const dir = await getMemoriesDir();
+            set((state) => ({
+                memories: state.memories.filter((m) => m.id !== id),
+            }));
+            void (async () => {
+                try {
+                    if (memory) {
+                        const dir = await fs.getMemoriesDir();
 
-                    await writeMarkdownFile(dir, `${memoryId}.md`, memoryToMarkdown(current));
+                        if (await fs.fileExists(dir, `${id}.md`)) {
+                            await fs.deleteFile(dir, `${id}.md`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('[mem] delete -> fail', error);
                 }
-            } catch (error) {
-                console.error('[mem] addTags -> write fail', error);
-            }
-        })();
-    },
-    removeTagsFromMemory: (memoryId, tagIds) => {
-        set((state) => ({
-            memories: state.memories.map((m) =>
-                m.id === memoryId
-                    ? {
-                          ...m,
-                          tagIds: m.tagIds.filter((id) => !tagIds.includes(id)),
-                      }
-                    : m,
-            ),
-        }));
-        void (async () => {
-            try {
-                const current = get().memories.find((m) => m.id === memoryId);
+            })();
+        },
+        addTagsToMemory: (memoryId, tagIds) => {
+            set((state) => ({
+                memories: state.memories.map((m) =>
+                    m.id === memoryId ? { ...m, tagIds: [...m.tagIds, ...tagIds] } : m,
+                ),
+            }));
+            void (async () => {
+                try {
+                    const current = get().memories.find((m) => m.id === memoryId);
 
-                if (current) {
-                    const dir = await getMemoriesDir();
+                    if (current) {
+                        const dir = await fs.getMemoriesDir();
 
-                    await writeMarkdownFile(dir, `${memoryId}.md`, memoryToMarkdown(current));
+                        await fs.writeMarkdownFile(
+                            dir,
+                            `${memoryId}.md`,
+                            memoryToMarkdown(current),
+                        );
+                    }
+                } catch (error) {
+                    console.error('[mem] addTags -> write fail', error);
                 }
-            } catch (error) {
-                console.error('[mem] removeTags -> write fail', error);
-            }
-        })();
-    },
-    clearMemories: () => set(() => ({ memories: [] })),
-    hydrate: (memories) => set(() => ({ memories })),
+            })();
+        },
+        removeTagsFromMemory: (memoryId, tagIds) => {
+            set((state) => ({
+                memories: state.memories.map((m) =>
+                    m.id === memoryId
+                        ? {
+                              ...m,
+                              tagIds: m.tagIds.filter((id) => !tagIds.includes(id)),
+                          }
+                        : m,
+                ),
+            }));
+            void (async () => {
+                try {
+                    const current = get().memories.find((m) => m.id === memoryId);
 
-    // Card-specific methods
-    get cards() {
-        return get().memories.filter((m): m is CardMemory => m.kind === 'card');
-    },
-    addCard: (input) => {
-        const now = Date.now();
-        const card: CardMemory = {
-            id: input.id ?? nanoid(),
-            kind: 'card',
-            frontSide: input.frontSide,
-            backSide: input.backSide,
-            tagIds: input.tagIds ?? [],
-            createdAt: input.createdAt ?? now,
-            updatedAt: input.updatedAt ?? now,
-            title: input.title,
-            tldr: input.tldr,
-        };
+                    if (current) {
+                        const dir = await fs.getMemoriesDir();
 
-        get().addMemory(card);
-
-        return card;
-    },
-    updateCard: (id, updater) => {
-        const now = Date.now();
-
-        get().updateMemory(id, (m) => {
-            if (m.kind !== 'card') return m;
-
-            return { ...updater(m as CardMemory), updatedAt: now };
-        });
-    },
-    removeCard: (id) => {
-        get().removeMemory(id);
-    },
-    addTagsToCard: (cardId, tagIds) => {
-        const now = Date.now();
-
-        set((state) => ({
-            memories: state.memories.map((m) =>
-                m.id === cardId && m.kind === 'card'
-                    ? { ...m, tagIds: [...m.tagIds, ...tagIds], updatedAt: now }
-                    : m,
-            ),
-        }));
-        void (async () => {
-            try {
-                const current = get().memories.find((m) => m.id === cardId);
-
-                if (current) {
-                    const dir = await getMemoriesDir();
-
-                    await writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+                        await fs.writeMarkdownFile(
+                            dir,
+                            `${memoryId}.md`,
+                            memoryToMarkdown(current),
+                        );
+                    }
+                } catch (error) {
+                    console.error('[mem] removeTags -> write fail', error);
                 }
-            } catch (error) {
-                console.error('[card] addTags -> write fail', error);
-            }
-        })();
-    },
-    removeTagsFromCard: (cardId, tagIds) => {
-        const now = Date.now();
+            })();
+        },
+        clearMemories: () => set(() => ({ memories: [] })),
+        hydrate: (memories) => set(() => ({ memories })),
 
-        set((state) => ({
-            memories: state.memories.map((m) =>
-                m.id === cardId && m.kind === 'card'
-                    ? {
-                          ...m,
-                          tagIds: m.tagIds.filter((id) => !tagIds.includes(id)),
-                          updatedAt: now,
-                      }
-                    : m,
-            ),
-        }));
-        void (async () => {
-            try {
-                const current = get().memories.find((m) => m.id === cardId);
+        get cards() {
+            return get().memories.filter((m): m is CardMemory => m.kind === 'card');
+        },
+        addCard: (input) => {
+            const now = Date.now();
+            const card: CardMemory = {
+                id: input.id ?? nanoid(),
+                kind: 'card',
+                frontSide: input.frontSide,
+                backSide: input.backSide,
+                tagIds: input.tagIds ?? [],
+                createdAt: input.createdAt ?? now,
+                updatedAt: input.updatedAt ?? now,
+                title: input.title,
+                tldr: input.tldr,
+            };
 
-                if (current) {
-                    const dir = await getMemoriesDir();
+            get().addMemory(card);
 
-                    await writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+            return card;
+        },
+        updateCard: (id, updater) => {
+            const now = Date.now();
+
+            get().updateMemory(id, (m) => {
+                if (m.kind !== 'card') return m;
+
+                return { ...updater(m as CardMemory), updatedAt: now };
+            });
+        },
+        removeCard: (id) => {
+            get().removeMemory(id);
+        },
+        addTagsToCard: (cardId, tagIds) => {
+            const now = Date.now();
+
+            set((state) => ({
+                memories: state.memories.map((m) =>
+                    m.id === cardId && m.kind === 'card'
+                        ? { ...m, tagIds: [...m.tagIds, ...tagIds], updatedAt: now }
+                        : m,
+                ),
+            }));
+            void (async () => {
+                try {
+                    const current = get().memories.find((m) => m.id === cardId);
+
+                    if (current) {
+                        const dir = await fs.getMemoriesDir();
+
+                        await fs.writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+                    }
+                } catch (error) {
+                    console.error('[card] addTags -> write fail', error);
                 }
-            } catch (error) {
-                console.error('[card] removeTags -> write fail', error);
-            }
-        })();
-    },
-}));
+            })();
+        },
+        removeTagsFromCard: (cardId, tagIds) => {
+            const now = Date.now();
 
-// Backward compatibility alias
+            set((state) => ({
+                memories: state.memories.map((m) =>
+                    m.id === cardId && m.kind === 'card'
+                        ? {
+                              ...m,
+                              tagIds: m.tagIds.filter((id) => !tagIds.includes(id)),
+                              updatedAt: now,
+                          }
+                        : m,
+                ),
+            }));
+            void (async () => {
+                try {
+                    const current = get().memories.find((m) => m.id === cardId);
+
+                    if (current) {
+                        const dir = await fs.getMemoriesDir();
+
+                        await fs.writeMarkdownFile(dir, `${cardId}.md`, memoryToMarkdown(current));
+                    }
+                } catch (error) {
+                    console.error('[card] removeTags -> write fail', error);
+                }
+            })();
+        },
+    };
+});
+
 export { useMemoriesStore as useCardStore };

@@ -1,7 +1,5 @@
 'use client';
 
-import { open } from '@tauri-apps/plugin-dialog';
-
 import { useSettingsStore } from '@/entities/settings/model/store';
 import { Switch } from '@/shared/ui/switch';
 import { Button } from '@/shared/ui/button';
@@ -91,13 +89,22 @@ export function SettingsTab() {
                             variant="outline"
                             onClick={async () => {
                                 try {
-                                    const selected = await open({
-                                        directory: true,
-                                        multiple: false,
-                                    });
+                                    if (
+                                        typeof window !== 'undefined' &&
+                                        'showDirectoryPicker' in window
+                                    ) {
+                                        const handle = await (window as any).showDirectoryPicker({
+                                            persistent: true,
+                                            mode: 'readwrite',
+                                        });
 
-                                    if (typeof selected === 'string') {
-                                        setDestinationDir(selected);
+                                        if (handle.name) {
+                                            setDestinationDir(handle.name);
+                                        }
+                                    } else {
+                                        alert(
+                                            'File System Access API is not supported in this browser. Please use Chrome 86+, Firefox 77+, or Safari 15.4+',
+                                        );
                                     }
                                 } catch (error) {
                                     console.error('Failed to open destination folder', error);
