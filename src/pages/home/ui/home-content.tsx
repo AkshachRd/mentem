@@ -22,10 +22,12 @@ import {
     ArticleMemory,
     ProductMemory,
 } from '@/entities/memory/model/types';
+import { TagComponent, useTagsStore } from '@/entities/tag';
 import { Masonry } from '@/shared/ui/masonry';
 
 type HomeContentProps = {
     selectedTagIds: string[];
+    onTagClick: (tagId: string) => void;
 };
 
 const COLUMN_WIDTH = 380;
@@ -58,8 +60,9 @@ function getMaxContentLines(note: NoteMemory): number {
     return Math.max(2, Math.floor(estimateNoteHeight(note) / 24) - 4);
 }
 
-export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
+export const HomeContent = ({ selectedTagIds, onTagClick }: HomeContentProps) => {
     const { memories } = useMemoriesStore();
+    const { tags } = useTagsStore();
 
     const allItems = useMemo(() => {
         return [...memories].sort((a, b) => b.updatedAt - a.updatedAt);
@@ -76,6 +79,22 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
         [filteredItems],
     );
 
+    const renderMemoryTags = (memory: Memory) => {
+        const memoryTags = tags.filter((tag) => memory.tagIds.includes(tag.id));
+
+        if (memoryTags.length === 0) return null;
+
+        return (
+            <div className="flex flex-wrap gap-1 px-2 pt-1 pb-1">
+                {memoryTags.map((tag) => (
+                    <TagComponent key={tag.id} color={tag.color} onClose={() => onTagClick(tag.id)}>
+                        {tag.name}
+                    </TagComponent>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <Masonry
             columnWidth={COLUMN_WIDTH}
@@ -86,27 +105,55 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
                     return <NoteCreateItem />;
                 }
                 if (item.kind === 'card') {
-                    return <CardItem card={item as Card} />;
+                    return (
+                        <>
+                            <CardItem card={item as Card} />
+                            {renderMemoryTags(item as Card)}
+                        </>
+                    );
                 }
                 if (item.kind === 'note') {
                     return (
-                        <NoteItem
-                            maxContentLines={getMaxContentLines(item as NoteMemory)}
-                            memory={item as NoteMemory}
-                        />
+                        <>
+                            <NoteItem
+                                maxContentLines={getMaxContentLines(item as NoteMemory)}
+                                memory={item as NoteMemory}
+                            />
+                            {renderMemoryTags(item as NoteMemory)}
+                        </>
                     );
                 }
                 if (item.kind === 'quote') {
-                    return <QuoteItem memory={item as QuoteMemory} />;
+                    return (
+                        <>
+                            <QuoteItem memory={item as QuoteMemory} />
+                            {renderMemoryTags(item as QuoteMemory)}
+                        </>
+                    );
                 }
                 if (item.kind === 'image') {
-                    return <ImageItem memory={item as ImageMemory} />;
+                    return (
+                        <>
+                            <ImageItem memory={item as ImageMemory} />
+                            {renderMemoryTags(item as ImageMemory)}
+                        </>
+                    );
                 }
                 if (item.kind === 'article') {
-                    return <ArticleItem memory={item as ArticleMemory} />;
+                    return (
+                        <>
+                            <ArticleItem memory={item as ArticleMemory} />
+                            {renderMemoryTags(item as ArticleMemory)}
+                        </>
+                    );
                 }
                 if (item.kind === 'product') {
-                    return <ProductItem memory={item as ProductMemory} />;
+                    return (
+                        <>
+                            <ProductItem memory={item as ProductMemory} />
+                            {renderMemoryTags(item as ProductMemory)}
+                        </>
+                    );
                 }
 
                 return null;

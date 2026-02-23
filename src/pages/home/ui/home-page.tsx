@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { SearchBar } from './search-bar';
 import { HomeContent } from './home-content';
@@ -9,6 +9,10 @@ import { StudyCard } from './study-card';
 
 export function HomePage() {
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+    const handleTagClick = useCallback((tagId: string) => {
+        setSelectedTagIds((prev) => (prev.includes(tagId) ? prev : [...prev, tagId]));
+    }, []);
 
     return (
         <section className="flex flex-col justify-center gap-4 py-8 md:py-10">
@@ -19,7 +23,7 @@ export function HomePage() {
             <div className="self-center">
                 <SearchBar selectedTagIds={selectedTagIds} setSelectedTagIds={setSelectedTagIds} />
             </div>
-            <HomeContent selectedTagIds={selectedTagIds} />
+            <HomeContent selectedTagIds={selectedTagIds} onTagClick={handleTagClick} />
         </section>
     );
 }
