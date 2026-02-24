@@ -1,11 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 import { FileSelector } from './file-selector';
 
 import { ChatPanel } from '@/entities/ai/ui/chatPanel';
 import { useSettingsStore } from '@/entities/settings';
+import { Card } from '@/shared/ui/shadcn/card';
+import { Button } from '@/shared/ui/button';
 
 const PdfViewer = dynamic(() => import('./pdf-viewer').then((mod) => mod.PdfViewer), {
     ssr: false,
@@ -24,6 +28,9 @@ export function ReadingPage() {
     const removePdfPath = useSettingsStore((state) => state.removePdfPath);
     const clearPdfPaths = useSettingsStore((state) => state.clearPdfPaths);
 
+    const [isFileSelectorOpen, setIsFileSelectorOpen] = useState(true);
+    const [isChatOpen, setIsChatOpen] = useState(true);
+
     const handleFilesAdd = (filePaths: string[]) => {
         addPdfPaths(filePaths);
     };
@@ -41,22 +48,67 @@ export function ReadingPage() {
     };
 
     return (
-        <div className="flex h-screen w-full gap-4 p-4">
-            <div className="w-60 flex-shrink-0">
-                <FileSelector
-                    currentFilePath={selectedPdfPath}
-                    selectedFilePaths={selectedPdfPaths}
-                    onClearAll={handleClearAll}
-                    onFileRemove={handleFileRemove}
-                    onFileSelect={handleFileSelect}
-                    onFilesAdd={handleFilesAdd}
-                />
+        <div className="flex h-[calc(100vh-7.5rem)] w-full gap-4 p-4">
+            <div
+                className="flex-shrink-0 transition-[width] duration-300 overflow-hidden"
+                style={{ width: isFileSelectorOpen ? '15rem' : '2.5rem' }}
+            >
+                {isFileSelectorOpen ? (
+                    <FileSelector
+                        currentFilePath={selectedPdfPath}
+                        selectedFilePaths={selectedPdfPaths}
+                        onClearAll={handleClearAll}
+                        onCollapse={() => setIsFileSelectorOpen(false)}
+                        onFileRemove={handleFileRemove}
+                        onFileSelect={handleFileSelect}
+                        onFilesAdd={handleFilesAdd}
+                    />
+                ) : (
+                    <Card className="flex h-full w-10 flex-col items-center py-2 gap-2">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={() => setIsFileSelectorOpen(true)}
+                        >
+                            <PanelLeftOpen className="h-4 w-4" />
+                        </Button>
+                        <span
+                            className="text-muted-foreground text-xs font-medium whitespace-nowrap"
+                            style={{ writingMode: 'vertical-rl' }}
+                        >
+                            PDF Files
+                        </span>
+                    </Card>
+                )}
             </div>
             <div className="min-w-0 flex-1">
                 <PdfViewer filePath={selectedPdfPath} />
             </div>
-            <div className="w-60 flex-shrink-0">
-                <ChatPanel />
+            <div
+                className="flex-shrink-0 transition-[width] duration-300 overflow-hidden"
+                style={{ width: isChatOpen ? '20rem' : '2.5rem' }}
+            >
+                {isChatOpen ? (
+                    <ChatPanel onCollapse={() => setIsChatOpen(false)} />
+                ) : (
+                    <Card className="flex h-full w-10 flex-col items-center py-2 gap-2">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 flex-shrink-0"
+                            onClick={() => setIsChatOpen(true)}
+                        >
+                            <PanelRightOpen className="h-4 w-4" />
+                        </Button>
+                        <span
+                            className="text-muted-foreground text-xs font-medium whitespace-nowrap"
+                            style={{ writingMode: 'vertical-rl' }}
+                        >
+                            AI Ассистент
+                        </span>
+                    </Card>
+                )}
             </div>
         </div>
     );

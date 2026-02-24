@@ -1,7 +1,7 @@
 'use client';
 
 import { open } from '@tauri-apps/plugin-dialog';
-import { X } from 'lucide-react';
+import { X, PanelLeftClose } from 'lucide-react';
 
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
@@ -12,6 +12,7 @@ type FileSelectorProps = {
     onFileSelect: (filePath: string) => void;
     onFileRemove: (filePath: string) => void;
     onClearAll: () => void;
+    onCollapse?: () => void;
     selectedFilePaths: string[];
     currentFilePath: string | null;
 };
@@ -21,6 +22,7 @@ export function FileSelector({
     onFileSelect,
     onFileRemove,
     onClearAll,
+    onCollapse,
     selectedFilePaths,
     currentFilePath,
 }: FileSelectorProps) {
@@ -52,8 +54,13 @@ export function FileSelector({
 
     return (
         <Card className="flex h-full flex-col">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle>PDF Files</CardTitle>
+                {onCollapse && (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onCollapse}>
+                        <PanelLeftClose className="h-4 w-4" />
+                    </Button>
+                )}
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden">
                 <div className="flex gap-2">

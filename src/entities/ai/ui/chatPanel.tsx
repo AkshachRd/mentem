@@ -4,7 +4,7 @@ import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
 
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, PanelRightClose } from 'lucide-react';
 import { DefaultChatTransport } from 'ai';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -14,7 +14,11 @@ import { cn } from '@/shared/lib/utils';
 import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
 import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
 
-export function ChatPanel() {
+type ChatPanelProps = {
+    onCollapse?: () => void;
+};
+
+export function ChatPanel({ onCollapse }: ChatPanelProps) {
     const { messages, sendMessage } = useChat({
         transport: new DefaultChatTransport({
             api: '/api/chat',
@@ -39,7 +43,7 @@ export function ChatPanel() {
     }, [messages]);
 
     return (
-        <Card className="bg-background flex h-screen w-80 flex-col rounded-l-xl rounded-r-none border-l shadow-2xl transition-all duration-300 md:w-96">
+        <Card className="flex h-full flex-col">
             {/* Шапка чата */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4">
                 <div className="flex items-center gap-2">
@@ -48,6 +52,11 @@ export function ChatPanel() {
                     </div>
                     <CardTitle className="text-sm font-semibold">AI Ассистент</CardTitle>
                 </div>
+                {onCollapse && (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onCollapse}>
+                        <PanelRightClose className="h-4 w-4" />
+                    </Button>
+                )}
             </CardHeader>
 
             {/* Область сообщений */}
