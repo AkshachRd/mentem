@@ -78,15 +78,17 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
                 e.preventDefault();
+                e.stopImmediatePropagation();
                 searchRef.current.openSearch();
             } else if (e.key === 'Escape' && searchRef.current.isSearchOpen) {
+                e.preventDefault();
                 searchRef.current.closeSearch();
             }
         };
 
-        document.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown, { capture: true });
 
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
     }, []);
 
     // Reset zoom and page number when file changes
