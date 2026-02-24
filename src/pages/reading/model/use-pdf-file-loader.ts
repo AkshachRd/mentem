@@ -1,5 +1,7 @@
 'use client';
 
+import type { PDFDocumentProxy } from 'pdfjs-dist';
+
 import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -7,6 +9,7 @@ export function usePdfFileLoader(filePath: string | null) {
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [numPages, setNumPages] = useState<number | null>(null);
+    const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null);
     const fileUrlRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -48,8 +51,10 @@ export function usePdfFileLoader(filePath: string | null) {
         };
     }, [filePath]);
 
-    const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-        setNumPages(numPages);
+    // Parameter typed loosely for compatibility with react-pdf's bundled pdfjs-dist
+    const onDocumentLoadSuccess = (document: { numPages: number }) => {
+        setNumPages(document.numPages);
+        setPdfDocument(document as PDFDocumentProxy);
         setError(null);
     };
 
@@ -59,5 +64,5 @@ export function usePdfFileLoader(filePath: string | null) {
         setError('Failed to load PDF file');
     };
 
-    return { fileUrl, error, numPages, onDocumentLoadSuccess, onDocumentLoadError };
+    return { fileUrl, error, numPages, pdfDocument, onDocumentLoadSuccess, onDocumentLoadError };
 }

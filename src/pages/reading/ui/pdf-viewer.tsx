@@ -2,17 +2,19 @@
 
 import type { ViewMode } from '../model/use-pdf-navigation';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 import { usePdfContainerRef } from '../model/use-pdf-container-ref';
 import { usePdfFileLoader } from '../model/use-pdf-file-loader';
+import { usePdfSearch } from '../model/use-pdf-search';
 import { usePdfZoom } from '../model/use-pdf-zoom';
 import { usePdfNavigation } from '../model/use-pdf-navigation';
 import { usePdfContextActions } from '../model/use-pdf-context-actions';
 import { usePdfQuoteNavigation } from '../model/use-pdf-quote-navigation';
 
 import { SessionCardsPanel } from './session-cards-panel';
+import { PdfSearchBar } from './pdf-search-bar';
 import { PdfTextContextMenu } from './pdf-text-context-menu';
 import { CreateFlashcardDialog } from './create-flashcard-dialog';
 
@@ -42,7 +44,7 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     const { getSelectionWithPosition } = usePdfTextSelection();
 
     // File loading
-    const { fileUrl, error, numPages, onDocumentLoadSuccess, onDocumentLoadError } =
+    const { fileUrl, error, numPages, pdfDocument, onDocumentLoadSuccess, onDocumentLoadError } =
         usePdfFileLoader(filePath);
 
     // Container ref binding
@@ -58,11 +60,34 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
     // Page navigation
     const nav = usePdfNavigation(containerRef, numPages, zoom.scale, viewMode);
 
+    // PDF search
+    const search = usePdfSearch(pdfDocument, nav.scrollToPage, nav.setPageNumber, containerRef);
+
     // Context menu actions
-    const ctx = usePdfContextActions(filePath, nav.pageNumber);
+    const ctx = usePdfContextActions(filePath, nav.pageNumber, search.openSearch);
 
     // Quote navigation from chat
     usePdfQuoteNavigation(filePath, containerRef, viewMode, nav.scrollToPage, nav.setPageNumber);
+
+    // Keyboard shortcuts for search (stable ref to avoid listener re-registration)
+    const searchRef = useRef(search);
+
+    searchRef.current = search;
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                searchRef.current.openSearch();
+            } else if (e.key === 'Escape' && searchRef.current.isSearchOpen) {
+                searchRef.current.closeSearch();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // Reset zoom and page number when file changes
     useEffect(() => {
@@ -180,6 +205,21 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                     </div>
                 </div>
             </CardHeader>
+            {search.isSearchOpen && (
+                <PdfSearchBar
+                    currentMatchIndex={search.currentMatchIndex}
+                    matchCase={search.matchCase}
+                    matchWholeWord={search.matchWholeWord}
+                    searchTerm={search.searchTerm}
+                    totalMatches={search.matches.length}
+                    onClose={search.closeSearch}
+                    onMatchCaseChange={search.setMatchCase}
+                    onMatchWholeWordChange={search.setMatchWholeWord}
+                    onNextMatch={search.goToNextMatch}
+                    onPrevMatch={search.goToPrevMatch}
+                    onSearchTermChange={search.setSearchTerm}
+                />
+            )}
             <CardContent className="flex flex-1 flex-col overflow-hidden p-4">
                 <div ref={scrollAreaContainerRef} className="min-h-0 flex-1">
                     <ScrollArea className="h-full w-full">
@@ -223,6 +263,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                                         renderTextLayer={true}
                                                         scale={zoom.scale}
                                                         onLoadSuccess={zoom.onPageLoadSuccess}
+                                                        onRenderTextLayerSuccess={
+                                                            search.rehighlight
+                                                        }
                                                     />
                                                 </div>
                                             ) : (
@@ -244,6 +287,9 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
                                                                 scale={zoom.scale}
                                                                 onLoadSuccess={
                                                                     zoom.onPageLoadSuccess
+                                                                }
+                                                                onRenderTextLayerSuccess={
+                                                                    search.rehighlight
                                                                 }
                                                             />
                                                         </div>

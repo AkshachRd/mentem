@@ -12,7 +12,11 @@ import { useMemoriesStore } from '@/entities/memory';
 import { useAutoGenerateTags } from '@/entities/ai';
 import { useQuoteStore } from '@/entities/quote';
 
-export function usePdfContextActions(filePath: string | null, pageNumber: number) {
+export function usePdfContextActions(
+    filePath: string | null,
+    pageNumber: number,
+    onSearch?: (text: string) => void,
+) {
     const [flashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
     const [flashcardText, setFlashcardText] = useState('');
 
@@ -77,11 +81,10 @@ export function usePdfContextActions(filePath: string | null, pageNumber: number
 
     const handleSearch = useCallback(
         (text: string) => {
-            // eslint-disable-next-line no-console
-            console.log('Search for:', text);
+            onSearch?.(text);
             clearSelection();
         },
-        [clearSelection],
+        [onSearch, clearSelection],
     );
 
     const handleSendToChat = useCallback(
