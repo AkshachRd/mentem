@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { ImageMemory } from '../../model/types';
-
 import { MemoryKindBadge } from '../memory-kind-badge';
 import { MemoryModal } from '../memory-modal';
 
@@ -38,7 +37,7 @@ export function ImageItem({ memory }: ImageItemProps) {
             </Card>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-3xl" showCloseButton={false}>
+                <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
                     <MemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>

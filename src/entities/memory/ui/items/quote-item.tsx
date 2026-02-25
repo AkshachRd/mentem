@@ -58,7 +58,7 @@ export function QuoteItem({ memory }: QuoteItemProps) {
             </Card>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-2xl" showCloseButton={false}>
+                <DialogContent className="max-w-5xl lg:max-w-5xl" showCloseButton={false}>
                     <MemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
