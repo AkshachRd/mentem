@@ -8,13 +8,13 @@ import { Card } from '@/entities/card';
 import {
     useMemoriesStore,
     Memory,
+    MemoryCreateItem,
     NoteItem,
     QuoteItem,
     ImageItem,
     ArticleItem,
     ProductItem,
 } from '@/entities/memory';
-import { NoteCreateItem } from '@/entities/memory/ui/note-create-item';
 import {
     NoteMemory,
     QuoteMemory,
@@ -83,7 +83,7 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
             items={itemsWithCreate}
             renderItem={(item) => {
                 if (item.kind === '__create__') {
-                    return <NoteCreateItem />;
+                    return <MemoryCreateItem />;
                 }
                 if (item.kind === 'card') {
                     return <CardItem card={item as Card} />;

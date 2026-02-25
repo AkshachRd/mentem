@@ -11,11 +11,8 @@ export type {
     ArticleMemory,
     ProductMemory,
 } from './model/types';
-export { NoteMemoryModal } from './ui/note-memory-modal';
-export { QuoteMemoryModal } from './ui/quote-memory-modal';
-export { ImageMemoryModal } from './ui/image-memory-modal';
-export { ArticleMemoryModal } from './ui/article-memory-modal';
-export { ProductMemoryModal } from './ui/product-memory-modal';
+export { MemoryModal } from './ui/memory-modal';
+export { MemoryCreateItem } from './ui/memory-create-item';
 export { NoteItem } from './ui/note-item';
 export { QuoteItem } from './ui/quote-item';
 export { ImageItem } from './ui/image-item';

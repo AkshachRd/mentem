@@ -5,8 +5,8 @@ import { ExternalLink } from 'lucide-react';
 
 import { ProductMemory } from '../model/types';
 
-import { ProductMemoryModal } from './product-memory-modal';
 import { MemoryKindBadge } from './memory-kind-badge';
+import { MemoryModal } from './memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardHeader, CardContent, CardFooter } from '@/shared/ui/card';
@@ -62,7 +62,7 @@ export function ProductItem({ memory }: ProductItemProps) {
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-2xl" showCloseButton={false}>
-                    <ProductMemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
+                    <MemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
         </>

@@ -5,8 +5,8 @@ import { ExternalLink } from 'lucide-react';
 
 import { QuoteMemory } from '../model/types';
 
-import { QuoteMemoryModal } from './quote-memory-modal';
 import { MemoryKindBadge } from './memory-kind-badge';
+import { MemoryModal } from './memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardContent, CardFooter } from '@/shared/ui/card';
@@ -60,7 +60,7 @@ export function QuoteItem({ memory }: QuoteItemProps) {
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-2xl" showCloseButton={false}>
-                    <QuoteMemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
+                    <MemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
         </>

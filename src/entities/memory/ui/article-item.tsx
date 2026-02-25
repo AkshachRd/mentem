@@ -5,8 +5,8 @@ import { ExternalLink } from 'lucide-react';
 
 import { ArticleMemory } from '../model/types';
 
-import { ArticleMemoryModal } from './article-memory-modal';
 import { MemoryKindBadge } from './memory-kind-badge';
+import { MemoryModal } from './memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardHeader, CardContent, CardFooter } from '@/shared/ui/card';
@@ -67,7 +67,7 @@ export function ArticleItem({ memory }: ArticleItemProps) {
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-2xl" showCloseButton={false}>
-                    <ArticleMemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
+                    <MemoryModal memory={memory} onClose={() => setDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
         </>
