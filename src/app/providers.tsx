@@ -111,21 +111,19 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 
                             if (url.protocol !== 'mentem:') continue;
 
-                            if (url.hostname === 'clip' && url.pathname === '/note') {
-                                const content = url.searchParams.get('content') ?? '';
+                            if (url.hostname === 'clip' && url.pathname === '/article') {
+                                const excerpt = url.searchParams.get('content') ?? undefined;
                                 const title = url.searchParams.get('title') ?? undefined;
-                                const sourceUrl = url.searchParams.get('url') ?? undefined;
+                                const articleUrl = url.searchParams.get('url') ?? '';
 
                                 const now = Date.now();
-                                const lines = [content, sourceUrl ? `\n\nSource: ${sourceUrl}` : '']
-                                    .filter(Boolean)
-                                    .join('');
 
                                 addMemory({
                                     id: nanoid(),
-                                    kind: 'note',
+                                    kind: 'article',
+                                    url: articleUrl,
                                     title,
-                                    content: lines,
+                                    excerpt: excerpt || undefined,
                                     createdAt: now,
                                     updatedAt: now,
                                     tagIds: [],
@@ -146,21 +144,19 @@ export function Providers({ children, themeProps }: ProvidersProps) {
                             const url = new URL(href);
 
                             if (url.protocol !== 'mentem:') continue;
-                            if (url.hostname === 'clip' && url.pathname === '/note') {
-                                const content = url.searchParams.get('content') ?? '';
+                            if (url.hostname === 'clip' && url.pathname === '/article') {
+                                const excerpt = url.searchParams.get('content') ?? undefined;
                                 const title = url.searchParams.get('title') ?? undefined;
-                                const sourceUrl = url.searchParams.get('url') ?? undefined;
+                                const articleUrl = url.searchParams.get('url') ?? '';
 
                                 const now = Date.now();
-                                const lines = [content, sourceUrl ? `\n\nSource: ${sourceUrl}` : '']
-                                    .filter(Boolean)
-                                    .join('');
 
                                 addMemory({
                                     id: nanoid(),
-                                    kind: 'note',
+                                    kind: 'article',
+                                    url: articleUrl,
                                     title,
-                                    content: lines,
+                                    excerpt: excerpt || undefined,
                                     createdAt: now,
                                     updatedAt: now,
                                     tagIds: [],
