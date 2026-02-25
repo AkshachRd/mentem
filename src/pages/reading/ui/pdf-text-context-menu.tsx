@@ -37,7 +37,7 @@ export interface PdfTextContextMenuProps {
     onSearch: (text: string) => void;
     onSendToChat?: (data: PdfTextSelectionData) => void;
     onCreateFlashcard?: (text: string) => void;
-    onSaveAsQuote?: (text: string) => void;
+    onSaveAsQuote?: (data: PdfTextSelectionData) => void;
 }
 
 export function PdfTextContextMenu({
@@ -96,8 +96,16 @@ export function PdfTextContextMenu({
                         </ContextMenuItem>
                     )}
 
-                    {onSaveAsQuote && (
-                        <ContextMenuItem onClick={() => onSaveAsQuote(currentText)}>
+                    {onSaveAsQuote && getSelectionWithPosition && (
+                        <ContextMenuItem
+                            onClick={() => {
+                                const data = getSelectionWithPosition();
+
+                                if (data) {
+                                    onSaveAsQuote(data);
+                                }
+                            }}
+                        >
                             <Quote className="h-4 w-4 shrink-0" />
                             <span>Save as Quote</span>
                         </ContextMenuItem>

@@ -90,6 +90,9 @@ export interface QuoteState {
     /** Navigate to a quote in PDF */
     navigateToQuote: (quoteId: string) => void;
 
+    /** Set navigation target directly */
+    setNavigationTarget: (target: NavigationTarget) => void;
+
     /** Clear navigation target after handling */
     clearNavigationTarget: () => void;
 

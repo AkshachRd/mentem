@@ -132,17 +132,23 @@ export function usePdfContextActions(
     );
 
     const handleSaveAsQuote = useCallback(
-        (text: string) => {
-            if (!text) return;
+        (data: PdfTextSelectionData) => {
+            if (!data.text) return;
 
             const fileName = filePath ? filePath.split(/[\\/]/).pop() || 'PDF' : 'PDF';
 
             const newQuote: QuoteMemory = {
                 id: crypto.randomUUID(),
                 kind: 'quote',
-                text,
+                text: data.text,
                 sourceUrl: filePath ?? undefined,
-                title: `From ${fileName} (Page ${pageNumber})`,
+                sourcePosition: {
+                    pageNumber: data.pageNumber,
+                    startOffset: data.startOffset,
+                    endOffset: data.endOffset,
+                    rect: data.rect,
+                },
+                title: `From ${fileName} (Page ${data.pageNumber})`,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 tagIds: [],
@@ -150,7 +156,7 @@ export function usePdfContextActions(
 
             addMemory(newQuote);
             toast.success('Quote saved', {
-                description: `From ${fileName} (Page ${pageNumber})`,
+                description: `From ${fileName} (Page ${data.pageNumber})`,
             });
 
             generateTags(newQuote.id, 'quote', {
@@ -159,7 +165,7 @@ export function usePdfContextActions(
 
             clearSelection();
         },
-        [filePath, pageNumber, addMemory, generateTags, clearSelection],
+        [filePath, addMemory, generateTags, clearSelection],
     );
 
     return {

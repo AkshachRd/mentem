@@ -36,6 +36,8 @@ export const useQuoteStore = create<QuoteState>()((set, get) => ({
         }
     },
 
+    setNavigationTarget: (target) => set({ navigationTarget: target }),
+
     clearNavigationTarget: () => set({ navigationTarget: null, activeQuoteId: null }),
 
     addPendingQuote: (quote: Quote) => {

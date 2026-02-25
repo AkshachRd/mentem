@@ -26,6 +26,12 @@ export type QuoteMemory = BaseMemory & {
     text: string;
     author?: string;
     sourceUrl?: string;
+    sourcePosition?: {
+        pageNumber: number;
+        startOffset: number;
+        endOffset: number;
+        rect: { top: number; left: number; width: number; height: number };
+    };
 };
 
 export type ArticleMemory = BaseMemory & {
