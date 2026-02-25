@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink } from 'lucide-react';
 
 import { ProductMemory } from '../../model/types';
 import { MemoryKindBadge } from '../memory-kind-badge';
 import { MemoryModal } from '../memory-modal';
 
-import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardHeader, CardContent, CardFooter } from '@/shared/ui/card';
+import { Dialog, DialogContent } from '@/shared/ui/dialog';
+import { ExternalLink } from '@/shared/ui/external-link';
 import { Separator } from '@/shared/ui/separator';
 
 type ProductItemProps = {
@@ -45,16 +45,9 @@ export function ProductItem({ memory }: ProductItemProps) {
                 )}
                 {memory.url && (
                     <CardFooter className="pt-0">
-                        <a
-                            className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
-                            href={memory.url}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="text-primary hover:text-primary/80 text-sm" href={memory.url}>
                             View product
-                        </a>
+                        </ExternalLink>
                     </CardFooter>
                 )}
             </Card>

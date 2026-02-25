@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink } from 'lucide-react';
 
 import { QuoteMemory } from '../../model/types';
 import { MemoryKindBadge } from '../memory-kind-badge';
 import { MemoryModal } from '../memory-modal';
 
-import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardContent, CardFooter } from '@/shared/ui/card';
+import { Dialog, DialogContent } from '@/shared/ui/dialog';
+import { ExternalLink } from '@/shared/ui/external-link';
 
 type QuoteItemProps = {
     memory: QuoteMemory;
@@ -42,16 +42,13 @@ export function QuoteItem({ memory }: QuoteItemProps) {
                             <span className="text-muted-foreground text-sm">— {memory.author}</span>
                         )}
                         {memory.sourceUrl && (
-                            <a
-                                className="text-muted-foreground hover:text-primary flex items-center gap-1 text-xs"
+                            <ExternalLink
+                                className="text-muted-foreground hover:text-primary text-xs"
                                 href={memory.sourceUrl}
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                onClick={(e) => e.stopPropagation()}
+                                iconSize={12}
                             >
-                                <ExternalLink className="h-3 w-3" />
                                 source
-                            </a>
+                            </ExternalLink>
                         )}
                     </CardFooter>
                 )}

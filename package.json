@@ -23,6 +23,7 @@
         "@tauri-apps/api": "^2.9.1",
         "@tauri-apps/plugin-deep-link": "^2.4.5",
         "@tauri-apps/plugin-dialog": "^2.4.2",
+        "@tauri-apps/plugin-opener": "^2.5.3",
         "@types/react-pdf": "^5.0.7",
         "ai": "6.0.3",
         "class-variance-authority": "^0.7.1",
