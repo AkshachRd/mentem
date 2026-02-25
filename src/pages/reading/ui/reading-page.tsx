@@ -50,7 +50,7 @@ export function ReadingPage() {
     return (
         <div className="flex h-[calc(100vh-7.5rem)] w-full gap-4 p-4">
             <div
-                className="flex-shrink-0 transition-[width] duration-300 overflow-hidden"
+                className="flex-shrink-0 overflow-hidden transition-[width] duration-300"
                 style={{ width: isFileSelectorOpen ? '15rem' : '2.5rem' }}
             >
                 {isFileSelectorOpen ? (
@@ -64,11 +64,11 @@ export function ReadingPage() {
                         onFilesAdd={handleFilesAdd}
                     />
                 ) : (
-                    <Card className="flex h-full w-10 flex-col items-center py-2 gap-2">
+                    <Card className="flex h-full w-10 flex-col items-center gap-2 py-2">
                         <Button
+                            className="h-7 w-7 flex-shrink-0"
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7 flex-shrink-0"
                             onClick={() => setIsFileSelectorOpen(true)}
                         >
                             <PanelLeftOpen className="h-4 w-4" />
@@ -83,20 +83,23 @@ export function ReadingPage() {
                 )}
             </div>
             <div className="min-w-0 flex-1">
-                <PdfViewer filePath={selectedPdfPath} />
+                <PdfViewer
+                    filePath={selectedPdfPath}
+                    panelState={`${isFileSelectorOpen}-${isChatOpen}`}
+                />
             </div>
             <div
-                className="flex-shrink-0 transition-[width] duration-300 overflow-hidden"
+                className="flex-shrink-0 overflow-hidden transition-[width] duration-300"
                 style={{ width: isChatOpen ? '20rem' : '2.5rem' }}
             >
                 {isChatOpen ? (
                     <ChatPanel onCollapse={() => setIsChatOpen(false)} />
                 ) : (
-                    <Card className="flex h-full w-10 flex-col items-center py-2 gap-2">
+                    <Card className="flex h-full w-10 flex-col items-center gap-2 py-2">
                         <Button
+                            className="h-7 w-7 flex-shrink-0"
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7 flex-shrink-0"
                             onClick={() => setIsChatOpen(true)}
                         >
                             <PanelRightOpen className="h-4 w-4" />

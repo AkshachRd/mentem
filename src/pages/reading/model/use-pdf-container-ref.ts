@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function usePdfContainerRef(deps: unknown[]) {
     const containerRef = useRef<HTMLElement | null>(null);
     const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
-    const [containerWidth, setContainerWidth] = useState(0);
 
     // Bind containerRef to ScrollArea viewport
     useEffect(() => {
@@ -38,26 +37,5 @@ export function usePdfContainerRef(deps: unknown[]) {
         };
     }, deps);
 
-    // Track container width
-    useLayoutEffect(() => {
-        if (!containerRef.current) return;
-
-        const updateWidth = () => {
-            if (containerRef.current) {
-                const width = containerRef.current.getBoundingClientRect().width;
-
-                setContainerWidth(width);
-            }
-        };
-
-        updateWidth();
-
-        const resizeObserver = new ResizeObserver(updateWidth);
-
-        resizeObserver.observe(containerRef.current);
-
-        return () => resizeObserver.disconnect();
-    }, []);
-
-    return { containerRef, scrollAreaContainerRef, containerWidth };
+    return { containerRef, scrollAreaContainerRef };
 }

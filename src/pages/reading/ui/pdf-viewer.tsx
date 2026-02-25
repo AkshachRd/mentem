@@ -34,9 +34,10 @@ if (typeof window !== 'undefined') {
 
 type PdfViewerProps = {
     filePath: string | null;
+    panelState?: string;
 };
 
-export function PdfViewer({ filePath }: PdfViewerProps) {
+export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('single');
 
     // Text selection for context menu
@@ -48,14 +49,14 @@ export function PdfViewer({ filePath }: PdfViewerProps) {
         usePdfFileLoader(filePath);
 
     // Container ref binding
-    const { containerRef, scrollAreaContainerRef, containerWidth } = usePdfContainerRef([
+    const { containerRef, scrollAreaContainerRef } = usePdfContainerRef([
         viewMode,
         numPages,
         fileUrl,
     ]);
 
     // Zoom controls
-    const zoom = usePdfZoom(containerRef, containerWidth);
+    const zoom = usePdfZoom(containerRef, panelState);
 
     // Page navigation
     const nav = usePdfNavigation(containerRef, numPages, zoom.scale, viewMode);

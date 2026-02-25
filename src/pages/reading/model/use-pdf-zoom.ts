@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useCallback, useEffect, type RefObject } from 'react';
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react';
 
 const ZOOM_STEP = 0.25;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3.0;
 
-export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, containerWidth: number) {
+export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, panelState: string) {
     const [scale, setScale] = useState(1.0);
     const [pageFit, setPageFit] = useState(false);
     const [pageWidth, setPageWidth] = useState<number | null>(null);
-    const [savedFitScale, setSavedFitScale] = useState<number | null>(null);
 
     const calculatePageFit = useCallback(() => {
         if (!containerRef.current || !pageWidth) return;
@@ -20,8 +19,6 @@ export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, containe
         const availableWidth = width - padding;
         const calculatedScale = availableWidth / pageWidth;
         const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, calculatedScale));
-
-        setSavedFitScale((prev) => prev ?? newScale);
 
         setScale((prev) => {
             const diff = Math.abs(prev - newScale);
@@ -34,16 +31,24 @@ export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, containe
         setPageWidth(page.width);
     }, []);
 
-    // Auto page fit calculation
-    useEffect(() => {
-        if (!pageFit || !pageWidth || containerWidth <= 0 || savedFitScale !== null) return;
+    // Recalculate fit only when panel layout changes (collapse/expand)
+    const prevPanelStateRef = useRef(panelState);
 
-        const timeoutId = setTimeout(() => {
-            calculatePageFit();
-        }, 50);
+    useEffect(() => {
+        if (prevPanelStateRef.current === panelState) {
+            prevPanelStateRef.current = panelState;
+
+            return;
+        }
+        prevPanelStateRef.current = panelState;
+
+        if (!pageFit || !pageWidth) return;
+
+        // Wait for CSS transition (300ms) to finish before measuring
+        const timeoutId = setTimeout(calculatePageFit, 350);
 
         return () => clearTimeout(timeoutId);
-    }, [pageFit, pageWidth, containerWidth, savedFitScale, calculatePageFit]);
+    }, [pageFit, pageWidth, panelState, calculatePageFit]);
 
     const handleZoomIn = useCallback(() => {
         setPageFit(false);
@@ -84,21 +89,14 @@ export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, containe
         setPageFit(newPageFit);
 
         if (newPageFit) {
-            if (savedFitScale !== null) {
-                setScale(savedFitScale);
-            } else if (pageWidth && containerRef.current) {
-                setTimeout(() => {
-                    calculatePageFit();
-                }, 50);
-            }
+            calculatePageFit();
         }
-    }, [pageFit, savedFitScale, pageWidth, containerRef, calculatePageFit]);
+    }, [pageFit, calculatePageFit]);
 
     const resetZoom = useCallback(() => {
         setScale(1.0);
         setPageFit(false);
         setPageWidth(null);
-        setSavedFitScale(null);
     }, []);
 
     return {
