@@ -25,7 +25,7 @@ export function ArticleItem({ memory }: ArticleItemProps) {
         <>
             <Card className="relative w-[380px] cursor-pointer" onClick={() => setDialogOpen(true)}>
                 <MemoryKindBadge className="absolute top-2 left-2" kind="article" />
-                <CardHeader className="pt-10">
+                <CardHeader className="pt-4">
                     <h3 className="line-clamp-2 text-lg font-semibold">{title}</h3>
                     {memory.source && (
                         <Badge className="w-fit" variant="outline">
@@ -51,7 +51,7 @@ export function ArticleItem({ memory }: ArticleItemProps) {
                         </CardContent>
                     </>
                 )}
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-4">
                     <a
                         className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
                         href={memory.url}
