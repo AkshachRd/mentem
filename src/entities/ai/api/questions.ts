@@ -1,13 +1,14 @@
 import { streamText } from 'ai';
-import { openrouter } from '@openrouter/ai-sdk-provider';
 
 import { getSystemPrompt } from '../lib/prompts';
+
+import { thinkingModel } from '@/shared/ai/llm-models';
 
 export async function POST(req: Request) {
     const { prompt }: { prompt: string } = await req.json();
 
     const result = streamText({
-        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
+        model: thinkingModel,
         system: getSystemPrompt(),
         prompt,
     });

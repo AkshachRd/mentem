@@ -1,6 +1,7 @@
-import { openrouter } from '@openrouter/ai-sdk-provider';
 import { streamObject } from 'ai';
 import { z } from 'zod';
+
+import { thinkingModel } from '@/shared/ai/llm-models';
 
 export const maxDuration = 30;
 
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
         : `Text to create flashcard from:\n"${text}"`;
 
     const result = streamObject({
-        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
+        model: thinkingModel,
         schema: flashcardSchema,
         system: SYSTEM_PROMPT,
         prompt,

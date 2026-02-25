@@ -9,5 +9,7 @@ if (!openrouterApiKey) {
 
 const openrouter = createOpenRouter({ apiKey: openrouterApiKey });
 
-export const thinkingModel = openrouter('tngtech/deepseek-r1t2-chimera:free');
-export const fleshModel = openrouter('tngtech/deepseek-r1t2-chimera:free');
+export const MODEL_ID = 'arcee-ai/trinity-large-preview:free' as const;
+
+export const thinkingModel = openrouter(MODEL_ID);
+export const fleshModel = openrouter(MODEL_ID);

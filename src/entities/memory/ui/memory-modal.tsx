@@ -26,7 +26,7 @@ type MemoryModalProps = {
 
 export function MemoryModal({ memory, onClose }: MemoryModalProps) {
     const [selectedKind, setSelectedKind] = useState<MemoryKind>(memory?.kind ?? 'note');
-    const tagSelection = useTagSelection(memory?.tagIds ?? []);
+    const tagSelection = useTagSelection(memory?.tagIds ?? [], memory);
     const isEditing = Boolean(memory);
 
     const formProps = {

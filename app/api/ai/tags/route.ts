@@ -1,6 +1,7 @@
-import { openrouter } from '@openrouter/ai-sdk-provider';
 import { streamObject } from 'ai';
 import { z } from 'zod';
+
+import { thinkingModel } from '@/shared/ai/llm-models';
 
 export const maxDuration = 30;
 
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     const prompt = `Content type: ${kind}\n\nText to generate tags for:\n"${text}"`;
 
     const result = streamObject({
-        model: openrouter('tngtech/deepseek-r1t2-chimera:free'),
+        model: thinkingModel,
         schema: tagsSchema,
         system: SYSTEM_PROMPT,
         prompt,
