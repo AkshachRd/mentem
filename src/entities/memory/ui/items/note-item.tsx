@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 
-import { NoteMemory } from '../model/types';
-
-import { MemoryKindBadge } from './memory-kind-badge';
-import { MemoryModal } from './memory-modal';
+import { NoteMemory } from '../../model/types';
+import { MemoryKindBadge } from '../memory-kind-badge';
+import { MemoryModal } from '../memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Separator } from '@/shared/ui/separator';

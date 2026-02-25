@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 
-import { ImageMemory } from '../model/types';
+import { ImageMemory } from '../../model/types';
 
-import { MemoryKindBadge } from './memory-kind-badge';
-import { MemoryModal } from './memory-modal';
+import { MemoryKindBadge } from '../memory-kind-badge';
+import { MemoryModal } from '../memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card } from '@/shared/ui/card';

@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 
-import { QuoteMemory } from '../model/types';
-
-import { MemoryKindBadge } from './memory-kind-badge';
-import { MemoryModal } from './memory-modal';
+import { QuoteMemory } from '../../model/types';
+import { MemoryKindBadge } from '../memory-kind-badge';
+import { MemoryModal } from '../memory-modal';
 
 import { Dialog, DialogContent } from '@/shared/ui/dialog';
 import { Card, CardContent, CardFooter } from '@/shared/ui/card';
