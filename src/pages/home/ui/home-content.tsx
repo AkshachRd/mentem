@@ -2,9 +2,6 @@
 
 import { useMemo } from 'react';
 
-import { CardItem } from './card-item';
-
-import { Card } from '@/entities/card';
 import {
     useMemoriesStore,
     Memory,
@@ -62,7 +59,9 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
     const { memories } = useMemoriesStore();
 
     const allItems = useMemo(() => {
-        return [...memories].sort((a, b) => b.updatedAt - a.updatedAt);
+        return [...memories]
+            .filter((item) => item.kind !== 'card')
+            .sort((a, b) => b.updatedAt - a.updatedAt);
     }, [memories]);
 
     const filteredItems = useMemo(() => {
@@ -84,9 +83,6 @@ export const HomeContent = ({ selectedTagIds }: HomeContentProps) => {
             renderItem={(item) => {
                 if (item.kind === '__create__') {
                     return <MemoryCreateItem />;
-                }
-                if (item.kind === 'card') {
-                    return <CardItem card={item as Card} />;
                 }
                 if (item.kind === 'note') {
                     return (

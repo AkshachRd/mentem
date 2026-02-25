@@ -51,7 +51,10 @@ export function ArticleItem({ memory }: ArticleItemProps) {
                     </>
                 )}
                 <CardFooter className="pt-4">
-                    <ExternalLink className="text-primary hover:text-primary/80 text-sm" href={memory.url}>
+                    <ExternalLink
+                        className="text-primary hover:text-primary/80 text-sm"
+                        href={memory.url}
+                    >
                         Read article
                     </ExternalLink>
                 </CardFooter>

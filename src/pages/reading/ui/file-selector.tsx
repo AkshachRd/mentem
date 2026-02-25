@@ -57,7 +57,7 @@ export function FileSelector({
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle>PDF Files</CardTitle>
                 {onCollapse && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onCollapse}>
+                    <Button className="h-7 w-7" size="icon" variant="ghost" onClick={onCollapse}>
                         <PanelLeftClose className="h-4 w-4" />
                     </Button>
                 )}

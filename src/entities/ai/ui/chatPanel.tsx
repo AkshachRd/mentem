@@ -53,7 +53,7 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
                     <CardTitle className="text-sm font-semibold">AI Ассистент</CardTitle>
                 </div>
                 {onCollapse && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onCollapse}>
+                    <Button className="h-7 w-7" size="icon" variant="ghost" onClick={onCollapse}>
                         <PanelRightClose className="h-4 w-4" />
                     </Button>
                 )}

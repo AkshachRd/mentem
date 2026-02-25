@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 
-import { useGenerateTags } from '../../../pages/home/model/use-generate-tags';
+import { useGenerateTags } from '../model/use-generate-tags';
 import { removeTagFromCard } from '../lib/removeTagFromCard';
 import { addTagToCard } from '../lib/addTagToCard';
 

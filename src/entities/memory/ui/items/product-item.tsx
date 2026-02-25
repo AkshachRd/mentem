@@ -45,7 +45,10 @@ export function ProductItem({ memory }: ProductItemProps) {
                 )}
                 {memory.url && (
                     <CardFooter className="pt-0">
-                        <ExternalLink className="text-primary hover:text-primary/80 text-sm" href={memory.url}>
+                        <ExternalLink
+                            className="text-primary hover:text-primary/80 text-sm"
+                            href={memory.url}
+                        >
                             View product
                         </ExternalLink>
                     </CardFooter>

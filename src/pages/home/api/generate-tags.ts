@@ -1,7 +1,6 @@
 import { streamText } from 'ai';
 
-import { getSystemPrompt } from '../lib/prompts';
-
+import { getSystemPrompt } from '@/entities/card/lib/prompts';
 import { fleshModel } from '@/shared/ai/llm-models';
 
 export async function POST(req: Request) {

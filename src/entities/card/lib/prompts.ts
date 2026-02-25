@@ -28,7 +28,7 @@ export function getSystemPrompt() {
    - Create new tags ONLY when necessary (max 2 new tags per card)
 
 3. Quality Enforcement:
-   - Tags must be: 
+   - Tags must be:
      * Machine-readable (no special characters)
      * Context-independent (understandable without card content)
      * Hierarchically scalable (nestable under parent categories)
