@@ -1,4 +1,4 @@
-import { streamObject } from 'ai';
+import { streamText, Output } from 'ai';
 import { z } from 'zod';
 
 import { thinkingModel } from '@/shared/ai/llm-models';
@@ -28,9 +28,9 @@ export async function POST(req: Request) {
 
     const prompt = `Content type: ${kind}\n\nText to generate tags for:\n"${text}"`;
 
-    const result = streamObject({
+    const result = streamText({
         model: thinkingModel,
-        schema: tagsSchema,
+        output: Output.object({ schema: tagsSchema }),
         system: SYSTEM_PROMPT,
         prompt,
     });

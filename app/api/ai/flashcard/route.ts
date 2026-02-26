@@ -1,4 +1,4 @@
-import { streamObject } from 'ai';
+import { streamText, Output } from 'ai';
 import { z } from 'zod';
 
 import { thinkingModel } from '@/shared/ai/llm-models';
@@ -31,9 +31,9 @@ export async function POST(req: Request) {
         ? `Source: ${context}\n\nText to create flashcard from:\n"${text}"`
         : `Text to create flashcard from:\n"${text}"`;
 
-    const result = streamObject({
+    const result = streamText({
         model: thinkingModel,
-        schema: flashcardSchema,
+        output: Output.object({ schema: flashcardSchema }),
         system: SYSTEM_PROMPT,
         prompt,
     });
