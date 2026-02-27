@@ -52,6 +52,7 @@ export type CardMemory = BaseMemory & {
     kind: 'card';
     frontSide: string;
     backSide: string;
+    srs?: import('@/entities/card/model/srs-types').SrsData;
 };
 
 export type CardInput = {
