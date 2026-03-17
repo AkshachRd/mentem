@@ -3,15 +3,14 @@
 import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
 
 import { useEffect, useRef, useState } from 'react';
-import { useChat } from '@ai-sdk/react';
 import { Send, Bot, User, PanelRightClose } from 'lucide-react';
-import { DefaultChatTransport } from 'ai';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
+import { useClaudeChat } from '@/shared/ai/use-claude-chat';
 import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
 
 type ChatPanelProps = {
@@ -19,10 +18,9 @@ type ChatPanelProps = {
 };
 
 export function ChatPanel({ onCollapse }: ChatPanelProps) {
-    const { messages, sendMessage } = useChat({
-        transport: new DefaultChatTransport({
-            api: '/api/chat',
-        }),
+    const { messages, sendMessage } = useClaudeChat({
+        systemPrompt:
+            'Ты помощник-литературовед. Пользователь читает книгу. Твоя задача — объяснять контекст, значение слов или обсуждать идеи из присланных фрагментов.',
     });
     const [input, setInput] = useState('');
 

@@ -1,10 +1,10 @@
-import { useCompletion } from '@ai-sdk/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-import { generatePrompt } from '../lib/prompts';
+import { generatePrompt, getSystemPrompt } from '../lib/prompts';
 
 import { useTagsStore } from '@/entities/tag';
 import { Card } from '@/entities/card';
+import { claudePrompt } from '@/shared/ai/claude-cli';
 
 export const parseAIGeneratedTags = (tags: string): string[] => {
     if (!tags) return [];
@@ -27,33 +27,37 @@ interface UseGenerateTagsReturn {
 
 export const useGenerateTags = (): UseGenerateTagsReturn => {
     const [showSaveAndCancelButton, setShowSaveAndCancelButton] = useState(false);
+    const [completion, setCompletion] = useState('');
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { completion, input, setInput, complete, isLoading, stop, setCompletion } = useCompletion(
-        {
-            api: '/api/ai/tags',
-            onFinish: () => {
-                setShowSaveAndCancelButton(true);
-            },
-        },
-    );
-
-    const generateTags = (card: Card) => {
+    const generateTags = useCallback(async (card: Card) => {
         const { tags } = useTagsStore.getState();
 
         const currentTags = tags.filter((tag) => card.tagIds.includes(tag.id));
 
-        complete(
-            generatePrompt(
-                card.frontSide,
-                card.backSide,
-                currentTags.map((tag) => tag.name).join(', '),
-                tags.map((tag) => tag.name).join(','),
-            ),
+        const prompt = generatePrompt(
+            card.frontSide,
+            card.backSide,
+            currentTags.map((tag) => tag.name).join(', '),
+            tags.map((tag) => tag.name).join(','),
         );
-    };
+
+        setIsLoading(true);
+        try {
+            const result = await claudePrompt(getSystemPrompt(), prompt);
+
+            setCompletion(result);
+            setShowSaveAndCancelButton(true);
+        } catch (err) {
+            console.error('[use-generate-tags] failed', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     const stopGeneration = () => {
-        stop();
+        // No-op: non-streaming prompt completes atomically
     };
 
     const clearCompletion = () => {

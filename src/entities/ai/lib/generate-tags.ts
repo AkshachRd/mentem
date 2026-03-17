@@ -1,4 +1,19 @@
 import { MemoryKind } from '@/entities/memory/model/types';
+import { claudePrompt } from '@/shared/ai/claude-cli';
+
+const SYSTEM_PROMPT = `You are an expert at categorizing and tagging content.
+
+Your task is to analyze the provided text and generate 2-5 relevant tags.
+
+Guidelines:
+1. Tags should be concise (1-3 words each)
+2. Tags should capture the main topics, concepts, or themes
+3. Use lowercase for consistency
+4. Prefer specific tags over generic ones
+5. Include both topic tags and type tags when appropriate
+6. Use the same language as the source text
+
+Output ONLY a JSON object in this exact format: {"tags": ["tag1", "tag2", "tag3"]}`;
 
 function getTextFromMemory(kind: MemoryKind, data: Record<string, unknown>): string {
     switch (kind) {
@@ -28,34 +43,19 @@ export async function generateTagsForMemory(
     if (!text.trim()) return [];
 
     try {
-        const response = await fetch('/api/ai/tags', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, kind }),
-        });
+        const prompt = `Content type: ${kind}\n\nText to generate tags for:\n"${text}"`;
+        const result = await claudePrompt(SYSTEM_PROMPT, prompt);
 
-        if (!response.ok) {
-            throw new Error('Failed to generate tags');
+        // Extract JSON from the response (handle possible markdown wrapping)
+        const jsonMatch = result.match(/\{[\s\S]*"tags"[\s\S]*\}/);
+
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            return parsed.tags || [];
         }
 
-        const reader = response.body?.getReader();
-
-        if (!reader) throw new Error('No response body');
-
-        let result = '';
-        const decoder = new TextDecoder();
-
-        while (true) {
-            const { done, value } = await reader.read();
-
-            if (done) break;
-            result += decoder.decode(value, { stream: true });
-        }
-
-        // Parse the streamed JSON
-        const parsed = JSON.parse(result);
-
-        return parsed.tags || [];
+        return [];
     } catch (err) {
         console.error('[generate-tags] failed', err);
 
