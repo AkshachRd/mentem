@@ -1,103 +1,273 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { PanInfo } from 'framer-motion';
-import { useKeyboard } from 'react-aria';
 import { useSearchParams } from 'next/navigation';
 
 import { CardStack } from './card-stack';
+import { RatingButtons } from './rating-buttons';
+import { QueueSummary } from './queue-summary';
+import { SessionResults, SessionStats } from './session-results';
 import { Side } from './side';
-import { ShowAnswerButton } from './show-answer-button';
+import { Statistics } from './statistics';
 
-import { useMemoriesStore } from '@/entities/memory';
+import {
+    type NextStatesPreview,
+    type SrsRating,
+    type LearnStats,
+    buildReviewQueue,
+    getNextStates,
+    scheduleReview,
+    appendReviewLog,
+    readReviewLog,
+    readReviewLogRaw,
+    computeStats,
+    optimizeParameters,
+} from '@/entities/card';
+import { useMemoriesStore, type CardMemory } from '@/entities/memory';
+import { useSettingsStore } from '@/entities/settings/model/store';
 
-const swipeConfidenceThreshold = 200;
+type LearnPhase = 'idle' | 'reviewing' | 'results';
 
-type LearnProps = {
-    sessionCardIds?: string[];
-};
+const SWIPE_THRESHOLD = 200;
 
-export function Learn({ sessionCardIds }: LearnProps) {
+export function Learn() {
     const searchParams = useSearchParams();
-    const { cards: allCards } = useMemoriesStore();
+    const memories = useMemoriesStore((s) => s.memories);
+    const updateCard = useMemoriesStore((s) => s.updateCard);
+    const { newCardsPerDay, desiredRetention, fsrsParameters } = useSettingsStore();
 
-    // Filter cards by session if provided
-    const cards = useMemo(() => {
+    const allCards = useMemo(
+        () => memories.filter((m): m is CardMemory => m.kind === 'card'),
+        [memories],
+    );
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Filter cards by session param if provided
+    const sessionCards = useMemo(() => {
         const sessionParam = searchParams?.get('session');
-        const idsToFilter = sessionCardIds ?? (sessionParam ? sessionParam.split(',') : null);
+        const ids = sessionParam ? sessionParam.split(',') : null;
 
-        if (!idsToFilter) return allCards;
-
-        const idSet = new Set(idsToFilter);
+        if (!ids) return allCards;
+        const idSet = new Set(ids);
 
         return allCards.filter((card) => idSet.has(card.id));
-    }, [allCards, sessionCardIds, searchParams]);
-    const [exitDirection, setExitDirection] = useState<number>(0);
+    }, [allCards, searchParams]);
+
+    // Build review queue
+    const queue = useMemo(() => {
+        return buildReviewQueue(sessionCards, newCardsPerDay, today);
+    }, [sessionCards, newCardsPerDay, today]);
+
+    const [phase, setPhase] = useState<LearnPhase>('idle');
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [revealBack, setRevealBack] = useState(false);
+    const [preview, setPreview] = useState<NextStatesPreview | null>(null);
+    const [exitDirection, setExitDirection] = useState(0);
     const [leftActive, setLeftActive] = useState(false);
     const [rightActive, setRightActive] = useState(false);
-    const [revealBack, setRevealBack] = useState(false);
 
-    const { keyboardProps } = useKeyboard({
-        onKeyDown: (e) => {
-            if (e.key === 'ArrowLeft') {
-                setExitDirection(-1);
-                handleRemove();
-            } else if (e.key === 'ArrowRight') {
-                setExitDirection(1);
-                handleRemove();
-            }
-        },
+    // Session tracking
+    const sessionStart = useRef(0);
+    const [sessionStats, setSessionStats] = useState<SessionStats>({
+        total: 0,
+        again: 0,
+        hard: 0,
+        good: 0,
+        easy: 0,
+        durationMs: 0,
     });
 
-    const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        setLeftActive(info.offset.x < -swipeConfidenceThreshold);
-        setRightActive(info.offset.x > swipeConfidenceThreshold);
-    };
+    // Statistics
+    const [stats, setStats] = useState<LearnStats | null>(null);
 
-    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        if (info.offset.x < -swipeConfidenceThreshold) {
-            setExitDirection?.(-1);
-            handleRemove();
-        } else if (info.offset.x > swipeConfidenceThreshold) {
-            setExitDirection?.(1);
-            handleRemove();
-        }
+    useEffect(() => {
+        readReviewLog()
+            .then((log) => setStats(computeStats(allCards, log)))
+            .catch(console.error);
+    }, [allCards, phase]);
 
-        setLeftActive(false);
-        setRightActive(false);
-    };
+    // Auto-optimize FSRS parameters after session ends (max once per day, 50+ reviews)
+    useEffect(() => {
+        if (phase !== 'results') return;
 
-    const handleRemove = () => {
-        // setCards((state) => state.slice(1));
+        const MIN_REVIEWS = 50;
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+        const { lastOptimizedAt, setFsrsParameters, setLastOptimizedAt } =
+            useSettingsStore.getState();
+
+        if (lastOptimizedAt && Date.now() - lastOptimizedAt < ONE_DAY_MS) return;
+
+        readReviewLogRaw()
+            .then((jsonl) => {
+                const lineCount = jsonl.split('\n').filter((l) => l.trim()).length;
+
+                if (lineCount < MIN_REVIEWS) return;
+
+                return optimizeParameters(jsonl).then((params) => {
+                    setFsrsParameters(params);
+                    setLastOptimizedAt(Date.now());
+                });
+            })
+            .catch(console.error);
+    }, [phase]);
+
+    const currentCard = phase === 'reviewing' ? queue.queue[currentIndex] : null;
+
+    // Load preview when card changes
+    useEffect(() => {
+        if (!currentCard) return;
+        setPreview(null);
+        getNextStates(currentCard.srs, desiredRetention, fsrsParameters)
+            .then(setPreview)
+            .catch(console.error);
+    }, [currentCard?.id, desiredRetention, fsrsParameters]);
+
+    const handleStart = useCallback(() => {
+        setPhase('reviewing');
+        setCurrentIndex(0);
         setRevealBack(false);
-    };
+        sessionStart.current = Date.now();
+        setSessionStats({ total: 0, again: 0, hard: 0, good: 0, easy: 0, durationMs: 0 });
+    }, []);
 
-    if (!cards) {
-        return <div>No cards</div>;
+    const handleRate = useCallback(
+        async (rating: SrsRating) => {
+            if (!currentCard) return;
+
+            const newSrs = await scheduleReview(
+                currentCard.srs,
+                rating,
+                desiredRetention,
+                fsrsParameters,
+            );
+
+            updateCard(currentCard.id, (c) => ({ ...c, srs: newSrs }));
+
+            appendReviewLog({
+                cardId: currentCard.id,
+                rating,
+                date: today,
+                elapsed: currentCard.srs
+                    ? Math.round(
+                          (Date.now() - new Date(currentCard.srs.lastReview).getTime()) /
+                              (1000 * 60 * 60 * 24),
+                      )
+                    : 0,
+                state: currentCard.srs?.state ?? 'new',
+                timestamp: Date.now(),
+            }).catch(console.error);
+
+            const ratingKey = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' }[rating] as
+                | 'again'
+                | 'hard'
+                | 'good'
+                | 'easy';
+
+            setSessionStats((prev) => ({
+                ...prev,
+                total: prev.total + 1,
+                [ratingKey]: prev[ratingKey] + 1,
+            }));
+
+            const nextIndex = currentIndex + 1;
+
+            if (nextIndex >= queue.queue.length) {
+                setSessionStats((prev) => ({
+                    ...prev,
+                    durationMs: Date.now() - sessionStart.current,
+                }));
+                setPhase('results');
+            } else {
+                setCurrentIndex(nextIndex);
+                setRevealBack(false);
+            }
+        },
+        [
+            currentCard,
+            currentIndex,
+            queue.queue.length,
+            desiredRetention,
+            fsrsParameters,
+            today,
+            updateCard,
+        ],
+    );
+
+    const handleDrag = useCallback(
+        (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+            if (!revealBack) return;
+            setLeftActive(info.offset.x < -SWIPE_THRESHOLD);
+            setRightActive(info.offset.x > SWIPE_THRESHOLD);
+        },
+        [revealBack],
+    );
+
+    const handleDragEnd = useCallback(
+        (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+            if (!revealBack) return;
+            if (info.offset.x < -SWIPE_THRESHOLD) {
+                setExitDirection(-1);
+                handleRate(1); // Again
+            } else if (info.offset.x > SWIPE_THRESHOLD) {
+                setExitDirection(1);
+                handleRate(3); // Good
+            }
+            setLeftActive(false);
+            setRightActive(false);
+        },
+        [revealBack, handleRate],
+    );
+
+    if (phase === 'idle') {
+        return (
+            <div className="flex flex-col items-center gap-8">
+                <QueueSummary queue={queue} onStart={handleStart} />
+                {stats && <Statistics stats={stats} />}
+            </div>
+        );
     }
 
+    if (phase === 'results') {
+        return (
+            <SessionResults
+                stats={sessionStats}
+                onDone={() => setPhase('idle')}
+                onRestart={handleStart}
+            />
+        );
+    }
+
+    // Reviewing phase
+    const remainingCards = queue.queue.slice(currentIndex);
+
     return (
-        <div className="flex h-full w-full items-center justify-center" {...keyboardProps}>
+        <div className="flex h-full w-full items-center justify-center">
             <Side color="destructive" isActive={leftActive}>
-                Bad
+                Again
             </Side>
-            <div className="flex h-full flex-col justify-evenly">
+            <div className="flex h-full flex-col items-center justify-evenly">
                 <CardStack
-                    cards={cards}
+                    cards={remainingCards}
                     exitDirection={exitDirection}
                     revealBack={revealBack}
                     onDrag={handleDrag}
                     onDragEnd={handleDragEnd}
                 />
-                <ShowAnswerButton
-                    disabled={revealBack}
-                    onClick={() => {
-                        setRevealBack(true);
-                    }}
-                    onCountDown={() => {
-                        setRevealBack(false);
-                    }}
-                />
+                {!revealBack ? (
+                    <button
+                        className="text-muted-foreground hover:text-foreground border-border rounded border px-6 py-2 text-sm transition"
+                        onClick={() => setRevealBack(true)}
+                    >
+                        Show answer
+                    </button>
+                ) : (
+                    <RatingButtons preview={preview} onRate={handleRate} />
+                )}
+                <p className="text-muted-foreground text-xs">
+                    {currentIndex + 1} / {queue.queue.length}
+                </p>
             </div>
             <Side color="success" isActive={rightActive}>
                 Good

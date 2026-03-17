@@ -1,5 +1,8 @@
 use tauri::{Emitter, Manager};
 use std::fs;
+use std::io::Write;
+
+mod srs;
 
 #[tauri::command]
 fn fs_any_write_text_file(path: String, contents: String) -> Result<(), String> {
@@ -42,6 +45,18 @@ fn fs_any_read_dir(path: String) -> Result<Vec<String>, String> {
     if let Some(name) = entry.file_name().to_str() { names.push(name.to_string()); }
   }
   Ok(names)
+}
+
+#[tauri::command]
+fn fs_any_append_text_file(path: String, contents: String) -> Result<(), String> {
+  fs::create_dir_all(std::path::Path::new(&path).parent().ok_or("bad path")?)
+    .map_err(|e| e.to_string())?;
+  let mut file = fs::OpenOptions::new()
+    .create(true)
+    .append(true)
+    .open(path)
+    .map_err(|e| e.to_string())?;
+  file.write_all(contents.as_bytes()).map_err(|e| e.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -87,7 +102,11 @@ pub fn run() {
       fs_any_mkdir,
       fs_any_remove,
       fs_any_exists,
-      fs_any_read_dir
+      fs_any_read_dir,
+      fs_any_append_text_file,
+      srs::srs_get_next_states,
+      srs::srs_schedule_review,
+      srs::srs_optimize
     ])
     .setup(|app| {
       #[cfg(desktop)]

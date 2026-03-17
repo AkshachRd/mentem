@@ -37,7 +37,7 @@ export function TagSidebar({
                             </TagComponent>
                         ))}
                         {showGenButton && (
-                            <Button type="button" size="sm" onClick={handleGenerateTags}>
+                            <Button size="sm" type="button" onClick={handleGenerateTags}>
                                 Gen tags
                             </Button>
                         )}

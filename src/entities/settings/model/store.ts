@@ -11,6 +11,10 @@ export type SettingsState = {
     destinationDir: string | null;
     selectedPdfPath: string | null;
     selectedPdfPaths: string[];
+    newCardsPerDay: number;
+    desiredRetention: number;
+    fsrsParameters: number[] | null;
+    lastOptimizedAt: number | null;
     setEnableAnimations: (value: boolean) => void;
     setCompactTables: (value: boolean) => void;
     setAiModel: (value: AiModelPreference) => void;
@@ -20,6 +24,10 @@ export type SettingsState = {
     addPdfPaths: (paths: string[]) => void;
     removePdfPath: (path: string) => void;
     clearPdfPaths: () => void;
+    setNewCardsPerDay: (value: number) => void;
+    setDesiredRetention: (value: number) => void;
+    setFsrsParameters: (params: number[] | null) => void;
+    setLastOptimizedAt: (ts: number | null) => void;
     reset: () => void;
 };
 
@@ -31,6 +39,10 @@ const defaultState = {
     destinationDir: null as string | null,
     selectedPdfPath: null as string | null,
     selectedPdfPaths: [] as string[],
+    newCardsPerDay: 20,
+    desiredRetention: 0.9,
+    fsrsParameters: null as number[] | null,
+    lastOptimizedAt: null as number | null,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -69,6 +81,10 @@ export const useSettingsStore = create<SettingsState>()(
                     };
                 }),
             clearPdfPaths: () => set(() => ({ selectedPdfPaths: [], selectedPdfPath: null })),
+            setNewCardsPerDay: (value) => set(() => ({ newCardsPerDay: value })),
+            setDesiredRetention: (value) => set(() => ({ desiredRetention: value })),
+            setFsrsParameters: (params) => set(() => ({ fsrsParameters: params })),
+            setLastOptimizedAt: (ts) => set(() => ({ lastOptimizedAt: ts })),
             reset: () => set(() => ({ ...defaultState })),
         }),
         {

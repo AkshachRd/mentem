@@ -72,3 +72,7 @@ export async function fileExists(dir: string, fileName: string) {
 
     return await invokeCmd<boolean>('fs_any_exists', { path: filePath } as InvokeArgs);
 }
+
+export async function appendTextFile(filePath: string, contents: string) {
+    await invokeCmd('fs_any_append_text_file', { path: filePath, contents } as InvokeArgs);
+}
