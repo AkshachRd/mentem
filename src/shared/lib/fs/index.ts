@@ -25,7 +25,7 @@ export async function getDataRoot(): Promise<string> {
     return dir;
 }
 
-export async function getCollectionDir(collection: 'memories' | 'tags'): Promise<string> {
+export async function getCollectionDir(collection: 'memories' | 'tags' | 'chats'): Promise<string> {
     const root = await getDataRoot();
     const dir = await join(root, collection);
 

@@ -3,7 +3,7 @@
 import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
 
 import { useEffect, useRef, useState } from 'react';
-import { Send, Bot, User, PanelRightClose } from 'lucide-react';
+import { Send, Bot, User, PanelRightClose, Plus, MessageSquare, Trash2 } from 'lucide-react';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
@@ -12,15 +12,191 @@ import { cn } from '@/shared/lib/utils';
 import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
 import { useClaudeChat } from '@/shared/ai/use-claude-chat';
 import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
+import { useChatStore } from '@/entities/ai/model/store';
 
 type ChatPanelProps = {
     onCollapse?: () => void;
 };
 
+function formatRelativeDate(timestamp: number): string {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+
+    if (minutes < 1) return 'только что';
+    if (minutes < 60) return `${minutes} мин. назад`;
+    const hours = Math.floor(minutes / 60);
+
+    if (hours < 24) return `${hours} ч. назад`;
+    const days = Math.floor(hours / 24);
+
+    if (days < 7) return `${days} дн. назад`;
+
+    return new Date(timestamp).toLocaleDateString('ru-RU');
+}
+
 export function ChatPanel({ onCollapse }: ChatPanelProps) {
+    const chats = useChatStore((state) => state.chats);
+    const activeChatId = useChatStore((state) => state.activeChatId);
+    const loaded = useChatStore((state) => state.loaded);
+    const loadChats = useChatStore((state) => state.loadChats);
+    const createChat = useChatStore((state) => state.createChat);
+    const deleteChat = useChatStore((state) => state.deleteChat);
+    const setActiveChat = useChatStore((state) => state.setActiveChat);
+
+    const [showHistory, setShowHistory] = useState(false);
+
+    // Load chats on mount
+    useEffect(() => {
+        loadChats();
+    }, [loadChats]);
+
+    // Auto-create chat if none active after loading
+    useEffect(() => {
+        if (loaded && !activeChatId) {
+            if (chats.length > 0) {
+                setActiveChat(chats[0].id);
+            } else {
+                createChat();
+            }
+        }
+    }, [loaded, activeChatId, chats, setActiveChat, createChat]);
+
+    const handleNewChat = () => {
+        createChat();
+        setShowHistory(false);
+    };
+
+    const handleSelectChat = (id: string) => {
+        setActiveChat(id);
+        setShowHistory(false);
+    };
+
+    const handleDeleteChat = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        deleteChat(id);
+    };
+
+    if (!activeChatId) {
+        return null;
+    }
+
+    return (
+        <Card className="flex h-full flex-col">
+            {/* Шапка чата */}
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4">
+                <div className="flex items-center gap-2">
+                    <div className="bg-primary/10 rounded-full p-2">
+                        <Bot className="text-primary h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-sm font-semibold">AI Ассистент</CardTitle>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Button
+                        className="h-7 w-7"
+                        size="icon"
+                        title="Новый чат"
+                        variant="ghost"
+                        onClick={handleNewChat}
+                    >
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        className="h-7 w-7"
+                        size="icon"
+                        title="История чатов"
+                        variant={showHistory ? 'secondary' : 'ghost'}
+                        onClick={() => setShowHistory(!showHistory)}
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                    </Button>
+                    {onCollapse && (
+                        <Button
+                            className="h-7 w-7"
+                            size="icon"
+                            variant="ghost"
+                            onClick={onCollapse}
+                        >
+                            <PanelRightClose className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            </CardHeader>
+
+            {/* История чатов (dropdown) */}
+            {showHistory && (
+                <div className="border-b">
+                    <ScrollArea className="max-h-60">
+                        <div className="flex flex-col p-1">
+                            {chats.length === 0 && (
+                                <div className="text-muted-foreground p-3 text-center text-xs">
+                                    Нет чатов
+                                </div>
+                            )}
+                            {chats.map((chat) => (
+                                <div
+                                    key={chat.id}
+                                    className={cn(
+                                        'group flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors',
+                                        'hover:bg-muted/50',
+                                        chat.id === activeChatId && 'bg-muted',
+                                    )}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => handleSelectChat(chat.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleSelectChat(chat.id);
+                                        }
+                                    }}
+                                >
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate font-medium">{chat.title}</div>
+                                        <div className="text-muted-foreground text-xs">
+                                            {formatRelativeDate(chat.updatedAt)}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        className="ml-2 h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={(e) => handleDeleteChat(e, chat.id)}
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            )}
+
+            {/* Chat content */}
+            <ChatContent chatId={activeChatId} onCollapse={onCollapse} />
+        </Card>
+    );
+}
+
+function ChatContent({ chatId }: { chatId: string; onCollapse?: () => void }) {
+    const chats = useChatStore((state) => state.chats);
+    const addMessage = useChatStore((state) => state.addMessage);
+    const updateLastMessage = useChatStore((state) => state.updateLastMessage);
+    const saveChat = useChatStore((state) => state.saveChat);
+
+    const chatMessages = chats.find((c) => c.id === chatId)?.messages ?? [];
+
     const { messages, sendMessage } = useClaudeChat({
         systemPrompt:
             'Ты помощник-литературовед. Пользователь читает книгу. Твоя задача — объяснять контекст, значение слов или обсуждать идеи из присланных фрагментов.',
+        chatId,
+        messages: chatMessages,
+        store: {
+            getMessages: () =>
+                useChatStore.getState().chats.find((c) => c.id === chatId)?.messages ?? [],
+            addMessage,
+            updateLastMessage,
+            saveChat,
+        },
     });
     const [input, setInput] = useState('');
 
@@ -40,23 +216,20 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
         }
     }, [messages]);
 
-    return (
-        <Card className="flex h-full flex-col">
-            {/* Шапка чата */}
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4">
-                <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 rounded-full p-2">
-                        <Bot className="text-primary h-5 w-5" />
-                    </div>
-                    <CardTitle className="text-sm font-semibold">AI Ассистент</CardTitle>
-                </div>
-                {onCollapse && (
-                    <Button className="h-7 w-7" size="icon" variant="ghost" onClick={onCollapse}>
-                        <PanelRightClose className="h-4 w-4" />
-                    </Button>
-                )}
-            </CardHeader>
+    const handleSubmit = () => {
+        // Build message with quote markers
+        const quoteParts = pendingQuotes.map(formatQuoteForChat);
+        const fullMessage = [...quoteParts, input.trim()].filter(Boolean).join('\n\n');
 
+        if (!fullMessage) return;
+
+        sendMessage({ text: fullMessage });
+        setInput('');
+        clearPendingQuotes();
+    };
+
+    return (
+        <>
             {/* Область сообщений */}
             <CardContent className="flex-1 overflow-hidden p-0">
                 <ScrollArea ref={scrollRef} className="h-full p-4">
@@ -142,18 +315,7 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
                     className="flex w-full items-end gap-2"
                     onSubmit={(e) => {
                         e.preventDefault();
-
-                        // Build message with quote markers
-                        const quoteParts = pendingQuotes.map(formatQuoteForChat);
-                        const fullMessage = [...quoteParts, input.trim()]
-                            .filter(Boolean)
-                            .join('\n\n');
-
-                        if (!fullMessage) return;
-
-                        sendMessage({ text: fullMessage });
-                        setInput('');
-                        clearPendingQuotes();
+                        handleSubmit();
                     }}
                 >
                     <ChatInputEditor
@@ -177,19 +339,7 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
                         onChange={setInput}
                         onQuoteClick={navigateToQuote}
                         onQuoteRemove={removePendingQuote}
-                        onSubmit={() => {
-                            // Build message with quote markers
-                            const quoteParts = pendingQuotes.map(formatQuoteForChat);
-                            const fullMessage = [...quoteParts, input.trim()]
-                                .filter(Boolean)
-                                .join('\n\n');
-
-                            if (!fullMessage) return;
-
-                            sendMessage({ text: fullMessage });
-                            setInput('');
-                            clearPendingQuotes();
-                        }}
+                        onSubmit={handleSubmit}
                     />
                     <Button
                         disabled={!input.trim() && pendingQuotes.length === 0}
@@ -200,6 +350,6 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
                     </Button>
                 </form>
             </CardFooter>
-        </Card>
+        </>
     );
 }

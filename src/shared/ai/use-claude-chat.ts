@@ -12,8 +12,18 @@ function genId(): string {
     return `msg-${Date.now()}-${++messageCounter}`;
 }
 
+interface ChatStoreActions {
+    getMessages: () => ChatMessage[];
+    addMessage: (chatId: string, message: ChatMessage) => void;
+    updateLastMessage: (chatId: string, text: string) => void;
+    saveChat: (chatId: string) => void;
+}
+
 interface UseClaudeChatOptions {
     systemPrompt: string;
+    chatId: string;
+    messages: ChatMessage[];
+    store: ChatStoreActions;
 }
 
 interface UseClaudeChatReturn {
@@ -23,11 +33,22 @@ interface UseClaudeChatReturn {
     stop: () => void;
 }
 
-export function useClaudeChat({ systemPrompt }: UseClaudeChatOptions): UseClaudeChatReturn {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function useClaudeChat({
+    systemPrompt,
+    chatId,
+    messages,
+    store,
+}: UseClaudeChatOptions): UseClaudeChatReturn {
     const [isLoading, setIsLoading] = useState(false);
     const sessionIdRef = useRef<string | null>(null);
     const unlistenRefs = useRef<Array<() => void>>([]);
+    const chatIdRef = useRef(chatId);
+
+    chatIdRef.current = chatId;
+
+    const storeRef = useRef(store);
+
+    storeRef.current = store;
 
     const cleanup = useCallback(async () => {
         for (const unlisten of unlistenRefs.current) {
@@ -56,6 +77,9 @@ export function useClaudeChat({ systemPrompt }: UseClaudeChatOptions): UseClaude
 
     const sendMessage = useCallback(
         async (params: { text: string }) => {
+            const currentChatId = chatIdRef.current;
+            const s = storeRef.current;
+
             const userMsg: ChatMessage = {
                 id: genId(),
                 role: 'user',
@@ -68,15 +92,20 @@ export function useClaudeChat({ systemPrompt }: UseClaudeChatOptions): UseClaude
                 parts: [{ type: 'text', text: '' }],
             };
 
-            setMessages((prev) => [...prev, userMsg, assistantMsg]);
+            s.addMessage(currentChatId, userMsg);
+            s.addMessage(currentChatId, assistantMsg);
             setIsLoading(true);
 
             const sessionId = `session-${Date.now()}`;
 
             sessionIdRef.current = sessionId;
 
-            // Build conversation context
-            const history = messages
+            // Build conversation context — read fresh messages from store
+            const allMessages = s.getMessages();
+            // Exclude the empty assistant message we just added
+            const historyMessages = allMessages.slice(0, -1);
+
+            const history = historyMessages
                 .map((m) => {
                     const role = m.role === 'user' ? 'Human' : 'Assistant';
                     const text = m.parts
@@ -96,48 +125,34 @@ export function useClaudeChat({ systemPrompt }: UseClaudeChatOptions): UseClaude
                 const unlistenChunk = await listen<string>(
                     `ai:stream:${sessionId}:chunk`,
                     (event) => {
-                        setMessages((prev) => {
-                            const updated = [...prev];
-                            const last = updated[updated.length - 1];
+                        const currentMessages = storeRef.current.getMessages();
+                        const lastMsg = currentMessages[currentMessages.length - 1];
+                        const currentText = lastMsg?.parts[0]?.text ?? '';
 
-                            if (last && last.role === 'assistant') {
-                                updated[updated.length - 1] = {
-                                    ...last,
-                                    parts: [
-                                        { type: 'text', text: last.parts[0].text + event.payload },
-                                    ],
-                                };
-                            }
-
-                            return updated;
-                        });
+                        storeRef.current.updateLastMessage(
+                            currentChatId,
+                            currentText + event.payload,
+                        );
                     },
                 );
 
                 const unlistenDone = await listen<void>(`ai:stream:${sessionId}:done`, () => {
                     setIsLoading(false);
                     sessionIdRef.current = null;
+                    storeRef.current.saveChat(currentChatId);
                     cleanup();
                 });
 
                 const unlistenError = await listen<string>(
                     `ai:stream:${sessionId}:error`,
                     (event) => {
-                        setMessages((prev) => {
-                            const updated = [...prev];
-                            const last = updated[updated.length - 1];
-
-                            if (last && last.role === 'assistant') {
-                                updated[updated.length - 1] = {
-                                    ...last,
-                                    parts: [{ type: 'text', text: `Error: ${event.payload}` }],
-                                };
-                            }
-
-                            return updated;
-                        });
+                        storeRef.current.updateLastMessage(
+                            currentChatId,
+                            `Error: ${event.payload}`,
+                        );
                         setIsLoading(false);
                         sessionIdRef.current = null;
+                        storeRef.current.saveChat(currentChatId);
                         cleanup();
                     },
                 );
@@ -146,29 +161,15 @@ export function useClaudeChat({ systemPrompt }: UseClaudeChatOptions): UseClaude
 
                 await claudeStreamStart(sessionId, systemPrompt, fullPrompt);
             } catch (err) {
-                setMessages((prev) => {
-                    const updated = [...prev];
-                    const last = updated[updated.length - 1];
-
-                    if (last && last.role === 'assistant') {
-                        updated[updated.length - 1] = {
-                            ...last,
-                            parts: [
-                                {
-                                    type: 'text',
-                                    text: `Error: ${err instanceof Error ? err.message : String(err)}`,
-                                },
-                            ],
-                        };
-                    }
-
-                    return updated;
-                });
+                storeRef.current.updateLastMessage(
+                    currentChatId,
+                    `Error: ${err instanceof Error ? err.message : String(err)}`,
+                );
                 setIsLoading(false);
                 sessionIdRef.current = null;
             }
         },
-        [messages, systemPrompt, cleanup],
+        [systemPrompt, cleanup],
     );
 
     return { messages, sendMessage, isLoading, stop };
