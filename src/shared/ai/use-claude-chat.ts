@@ -23,6 +23,7 @@ interface UseClaudeChatOptions {
     systemPrompt: string;
     chatId: string;
     messages: ChatMessage[];
+    model?: string;
     store: ChatStoreActions;
 }
 
@@ -37,6 +38,7 @@ export function useClaudeChat({
     systemPrompt,
     chatId,
     messages,
+    model,
     store,
 }: UseClaudeChatOptions): UseClaudeChatReturn {
     const [isLoading, setIsLoading] = useState(false);
@@ -159,7 +161,7 @@ export function useClaudeChat({
 
                 unlistenRefs.current = [unlistenChunk, unlistenDone, unlistenError];
 
-                await claudeStreamStart(sessionId, systemPrompt, fullPrompt);
+                await claudeStreamStart(sessionId, systemPrompt, fullPrompt, model);
             } catch (err) {
                 storeRef.current.updateLastMessage(
                     currentChatId,
@@ -169,7 +171,7 @@ export function useClaudeChat({
                 sessionIdRef.current = null;
             }
         },
-        [systemPrompt, cleanup],
+        [systemPrompt, model, cleanup],
     );
 
     return { messages, sendMessage, isLoading, stop };

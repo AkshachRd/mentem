@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AiModelPreference = 'auto' | 'thinking' | 'flesh';
+export type AiModelPreference = 'auto' | 'sonnet' | 'opus' | 'haiku';
 
 export type SettingsState = {
     enableAnimations: boolean;

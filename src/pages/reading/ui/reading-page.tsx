@@ -93,7 +93,10 @@ export function ReadingPage() {
                 style={{ width: isChatOpen ? '20rem' : '2.5rem' }}
             >
                 {isChatOpen ? (
-                    <ChatPanel onCollapse={() => setIsChatOpen(false)} />
+                    <ChatPanel
+                        bookFileName={selectedPdfPath?.split(/[/\\]/).pop() ?? undefined}
+                        onCollapse={() => setIsChatOpen(false)}
+                    />
                 ) : (
                     <Card className="flex h-full w-10 flex-col items-center gap-2 py-2">
                         <Button

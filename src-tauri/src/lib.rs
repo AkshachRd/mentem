@@ -106,12 +106,28 @@ async fn ai_stream_start(
     session_id: String,
     system_prompt: String,
     user_prompt: String,
+    model: Option<String>,
     app: tauri::AppHandle,
     state: tauri::State<'_, AiProcesses>,
 ) -> Result<(), String> {
     let combined = format!("<system>{}</system>\n\n{}", system_prompt, user_prompt);
+    let mut args = vec![
+        "-p".to_string(),
+        combined,
+        "--output-format".to_string(),
+        "stream-json".to_string(),
+        "--verbose".to_string(),
+    ];
+
+    if let Some(ref m) = model {
+        if m != "auto" {
+            args.push("--model".to_string());
+            args.push(m.clone());
+        }
+    }
+
     let mut child = tokio::process::Command::new("claude")
-        .args(["-p", &combined, "--output-format", "stream-json", "--verbose"])
+        .args(&args)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()

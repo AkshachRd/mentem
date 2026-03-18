@@ -63,7 +63,7 @@ export function SettingsTab() {
                         <Select
                             value={aiModel}
                             onValueChange={(value) => {
-                                setAiModel(value as 'auto' | 'thinking' | 'flesh');
+                                setAiModel(value as 'auto' | 'sonnet' | 'opus' | 'haiku');
                             }}
                         >
                             <SelectTrigger aria-label="AI model preference" className="max-w-xs">
@@ -71,8 +71,9 @@ export function SettingsTab() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="auto">Auto</SelectItem>
-                                <SelectItem value="thinking">Thinking</SelectItem>
-                                <SelectItem value="flesh">Flesh</SelectItem>
+                                <SelectItem value="sonnet">Sonnet</SelectItem>
+                                <SelectItem value="opus">Opus</SelectItem>
+                                <SelectItem value="haiku">Haiku</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

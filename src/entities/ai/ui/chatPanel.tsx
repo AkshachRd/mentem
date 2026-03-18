@@ -2,20 +2,38 @@
 
 import type { QuoteBadgeData } from '@/shared/ui/chat-input-editor';
 
-import { useEffect, useRef, useState } from 'react';
-import { Send, Bot, User, PanelRightClose, Plus, MessageSquare, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    Send,
+    Bot,
+    User,
+    PanelRightClose,
+    Plus,
+    MessageSquare,
+    Trash2,
+    ChevronDown,
+} from 'lucide-react';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+} from '@/shared/ui/dropdown-menu';
 import { cn } from '@/shared/lib/utils';
 import { ChatInputEditor } from '@/shared/ui/chat-input-editor';
 import { useClaudeChat } from '@/shared/ai/use-claude-chat';
 import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
 import { useChatStore } from '@/entities/ai/model/store';
+import { useSettingsStore } from '@/entities/settings/model/store';
 
 type ChatPanelProps = {
     onCollapse?: () => void;
+    bookFileName?: string;
 };
 
 function formatRelativeDate(timestamp: number): string {
@@ -34,7 +52,7 @@ function formatRelativeDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString('ru-RU');
 }
 
-export function ChatPanel({ onCollapse }: ChatPanelProps) {
+export function ChatPanel({ onCollapse, bookFileName }: ChatPanelProps) {
     const chats = useChatStore((state) => state.chats);
     const activeChatId = useChatStore((state) => state.activeChatId);
     const loaded = useChatStore((state) => state.loaded);
@@ -172,12 +190,33 @@ export function ChatPanel({ onCollapse }: ChatPanelProps) {
             )}
 
             {/* Chat content */}
-            <ChatContent chatId={activeChatId} onCollapse={onCollapse} />
+            <ChatContent
+                bookFileName={bookFileName}
+                chatId={activeChatId}
+                onCollapse={onCollapse}
+            />
         </Card>
     );
 }
 
-function ChatContent({ chatId }: { chatId: string; onCollapse?: () => void }) {
+const MODEL_LABELS: Record<string, string> = {
+    auto: 'Auto',
+    sonnet: 'Claude Sonnet',
+    opus: 'Claude Opus',
+    haiku: 'Claude Haiku',
+};
+
+function ChatContent({
+    chatId,
+    bookFileName,
+}: {
+    chatId: string;
+    onCollapse?: () => void;
+    bookFileName?: string;
+}) {
+    const aiModel = useSettingsStore((s) => s.aiModel);
+    const setAiModel = useSettingsStore((s) => s.setAiModel);
+
     const chats = useChatStore((state) => state.chats);
     const addMessage = useChatStore((state) => state.addMessage);
     const updateLastMessage = useChatStore((state) => state.updateLastMessage);
@@ -185,11 +224,20 @@ function ChatContent({ chatId }: { chatId: string; onCollapse?: () => void }) {
 
     const chatMessages = chats.find((c) => c.id === chatId)?.messages ?? [];
 
+    const systemPrompt = useMemo(() => {
+        const base =
+            'Ты помощник-литературовед. Пользователь читает книгу. Твоя задача — объяснять контекст, значение слов или обсуждать идеи из присланных фрагментов.';
+
+        if (!bookFileName) return base;
+
+        return `${base}\n\nСейчас пользователь читает файл: "${bookFileName}".`;
+    }, [bookFileName]);
+
     const { messages, sendMessage } = useClaudeChat({
-        systemPrompt:
-            'Ты помощник-литературовед. Пользователь читает книгу. Твоя задача — объяснять контекст, значение слов или обсуждать идеи из присланных фрагментов.',
+        systemPrompt,
         chatId,
         messages: chatMessages,
+        model: aiModel === 'auto' ? undefined : aiModel,
         store: {
             getMessages: () =>
                 useChatStore.getState().chats.find((c) => c.id === chatId)?.messages ?? [],
@@ -310,7 +358,7 @@ function ChatContent({ chatId }: { chatId: string; onCollapse?: () => void }) {
             </CardContent>
 
             {/* Поле ввода */}
-            <CardFooter className="bg-muted/20 border-t p-3">
+            <CardFooter className="bg-muted/20 flex-col items-stretch border-t p-3">
                 <form
                     className="flex w-full items-end gap-2"
                     onSubmit={(e) => {
@@ -349,6 +397,31 @@ function ChatContent({ chatId }: { chatId: string; onCollapse?: () => void }) {
                         <Send className="h-4 w-4" />
                     </Button>
                 </form>
+                <div className="flex items-center gap-1 pt-1">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors">
+                            {MODEL_LABELS[aiModel] ?? aiModel}
+                            <ChevronDown className="h-3 w-3" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" side="top" sideOffset={8}>
+                            <DropdownMenuRadioGroup
+                                value={aiModel}
+                                onValueChange={(value) => setAiModel(value as typeof aiModel)}
+                            >
+                                <DropdownMenuRadioItem value="auto">Auto</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="sonnet">
+                                    Claude Sonnet
+                                </DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="opus">
+                                    Claude Opus
+                                </DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="haiku">
+                                    Claude Haiku
+                                </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </CardFooter>
         </>
     );
