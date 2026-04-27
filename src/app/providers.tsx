@@ -15,6 +15,7 @@ import { useMemoriesStore } from '@/entities/memory/model/store';
 import { useTagsStore } from '@/entities/tag/model/store';
 import { getMemoriesDir, listFiles, readMarkdownFile } from '@/shared/lib/fs';
 import { parseMemoryMarkdown } from '@/entities/memory/lib/parse';
+import { setupDevInvoke } from '@/shared/lib/tauri/dev-invoke';
 
 export interface ProvidersProps {
     children: React.ReactNode;
@@ -28,6 +29,8 @@ declare module '@react-types/shared' {
 }
 
 export function Providers({ children, themeProps }: ProvidersProps) {
+    setupDevInvoke();
+
     const addMemory = useMemoriesStore((s) => s.addMemory);
     const addTag = useTagsStore((s) => s.addTag);
 

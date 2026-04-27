@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 mod srs;
+mod dev_invoke;
 
 struct AiProcesses(Mutex<HashMap<String, tokio::process::Child>>);
 
@@ -293,6 +294,9 @@ pub fn run() {
       ai_stream_cancel
     ])
     .setup(|app| {
+      #[cfg(all(desktop, debug_assertions))]
+      dev_invoke::start(app.handle().clone(), app.invoke_key().to_string(), 3030);
+
       #[cfg(desktop)]
       {
         // Ensure the scheme is registered at runtime for desktop platforms
