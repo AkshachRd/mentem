@@ -29,7 +29,7 @@ interface UseClaudeChatOptions {
 
 interface UseClaudeChatReturn {
     messages: ChatMessage[];
-    sendMessage: (params: { text: string }) => void;
+    sendMessage: (params: { text: string; images?: Array<{ path: string; name: string }> }) => void;
     isLoading: boolean;
     stop: () => void;
 }
@@ -78,14 +78,20 @@ export function useClaudeChat({
     }, [cleanup]);
 
     const sendMessage = useCallback(
-        async (params: { text: string }) => {
+        async (params: { text: string; images?: Array<{ path: string; name: string }> }) => {
             const currentChatId = chatIdRef.current;
             const s = storeRef.current;
+
+            const imageParts = (params.images ?? []).map((img) => ({
+                type: 'image' as const,
+                path: img.path,
+                name: img.name,
+            }));
 
             const userMsg: ChatMessage = {
                 id: genId(),
                 role: 'user',
-                parts: [{ type: 'text', text: params.text }],
+                parts: [...imageParts, { type: 'text', text: params.text }],
             };
 
             const assistantMsg: ChatMessage = {
@@ -111,7 +117,7 @@ export function useClaudeChat({
                 .map((m) => {
                     const role = m.role === 'user' ? 'Human' : 'Assistant';
                     const text = m.parts
-                        .filter((p) => p.type === 'text')
+                        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
                         .map((p) => p.text)
                         .join('');
 
@@ -129,7 +135,8 @@ export function useClaudeChat({
                     (event) => {
                         const currentMessages = storeRef.current.getMessages();
                         const lastMsg = currentMessages[currentMessages.length - 1];
-                        const currentText = lastMsg?.parts[0]?.text ?? '';
+                        const firstPart = lastMsg?.parts[0];
+                        const currentText = firstPart?.type === 'text' ? firstPart.text : '';
 
                         storeRef.current.updateLastMessage(
                             currentChatId,
@@ -161,7 +168,9 @@ export function useClaudeChat({
 
                 unlistenRefs.current = [unlistenChunk, unlistenDone, unlistenError];
 
-                await claudeStreamStart(sessionId, systemPrompt, fullPrompt, model);
+                const imagePaths = params.images?.map((img) => img.path);
+
+                await claudeStreamStart(sessionId, systemPrompt, fullPrompt, model, imagePaths);
             } catch (err) {
                 storeRef.current.updateLastMessage(
                     currentChatId,

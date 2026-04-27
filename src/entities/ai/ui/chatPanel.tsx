@@ -12,6 +12,8 @@ import {
     MessageSquare,
     Trash2,
     ChevronDown,
+    ImagePlus,
+    X,
 } from 'lucide-react';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -30,6 +32,48 @@ import { useClaudeChat } from '@/shared/ai/use-claude-chat';
 import { useQuoteStore, QuoteBlock, extractQuoteId, formatQuoteForChat } from '@/entities/quote';
 import { useChatStore } from '@/entities/ai/model/store';
 import { useSettingsStore } from '@/entities/settings/model/store';
+
+/** Renders a local filesystem image by reading bytes via Tauri IPC */
+function LocalImage({
+    filePath,
+    alt,
+    className,
+}: {
+    filePath: string;
+    alt?: string;
+    className?: string;
+}) {
+    const [src, setSrc] = useState<string>();
+
+    useEffect(() => {
+        let url: string | undefined;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const { invoke } = await import('@tauri-apps/api/core');
+                const bytes: number[] = await invoke('fs_any_read_binary_file', {
+                    path: filePath,
+                });
+
+                if (cancelled) return;
+                url = URL.createObjectURL(new Blob([new Uint8Array(bytes)]));
+                setSrc(url);
+            } catch {
+                // File may no longer exist
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+            if (url) URL.revokeObjectURL(url);
+        };
+    }, [filePath]);
+
+    if (!src) return <div className={cn('bg-muted animate-pulse rounded', className)} />;
+
+    return <img alt={alt ?? ''} className={className} src={src} />;
+}
 
 type ChatPanelProps = {
     onCollapse?: () => void;
@@ -247,6 +291,24 @@ function ChatContent({
         },
     });
     const [input, setInput] = useState('');
+    const [pendingImages, setPendingImages] = useState<Array<{ path: string; name: string }>>([]);
+
+    const handleAttachImage = async () => {
+        const { open } = await import('@tauri-apps/plugin-dialog');
+        const selected = await open({
+            filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] }],
+            multiple: true,
+        });
+
+        if (!selected) return;
+        const paths = Array.isArray(selected) ? selected : [selected];
+        const newImages = paths.map((p) => ({
+            path: p,
+            name: p.split(/[\\/]/).pop() ?? p,
+        }));
+
+        setPendingImages((prev) => [...prev, ...newImages]);
+    };
 
     // Quote store for rendering quote blocks and pending quotes
     const getQuote = useQuoteStore((state) => state.getQuote);
@@ -269,10 +331,14 @@ function ChatContent({
         const quoteParts = pendingQuotes.map(formatQuoteForChat);
         const fullMessage = [...quoteParts, input.trim()].filter(Boolean).join('\n\n');
 
-        if (!fullMessage) return;
+        if (!fullMessage && pendingImages.length === 0) return;
 
-        sendMessage({ text: fullMessage });
+        sendMessage({
+            text: fullMessage || (pendingImages.length > 0 ? 'Опиши это изображение' : ''),
+            images: pendingImages.length > 0 ? pendingImages : undefined,
+        });
         setInput('');
+        setPendingImages([]);
         clearPendingQuotes();
     };
 
@@ -315,9 +381,17 @@ function ChatContent({
                                             : 'bg-muted text-foreground rounded-tl-none',
                                     )}
                                 >
-                                    {/* Обработка цитат */}
                                     {m.parts.map((part, i) => {
-                                        if (part.type !== 'text') return null;
+                                        if (part.type === 'image') {
+                                            return (
+                                                <LocalImage
+                                                    key={i}
+                                                    alt={part.name}
+                                                    className="my-1 max-h-48 rounded object-contain"
+                                                    filePath={part.path}
+                                                />
+                                            );
+                                        }
 
                                         // Check for quote marker
                                         const quoteId = extractQuoteId(part.text);
@@ -359,6 +433,27 @@ function ChatContent({
 
             {/* Поле ввода */}
             <CardFooter className="bg-muted/20 flex-col items-stretch border-t p-3">
+                {/* Image previews */}
+                {pendingImages.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                        {pendingImages.map((img, idx) => (
+                            <div key={img.path} className="group relative">
+                                <LocalImage
+                                    alt={img.name}
+                                    className="h-16 w-16 rounded border object-cover"
+                                    filePath={img.path}
+                                />
+                                <button
+                                    className="bg-background/80 hover:bg-destructive hover:text-destructive-foreground absolute -top-1.5 -right-1.5 rounded-full p-0.5 opacity-0 shadow transition-all group-hover:opacity-100"
+                                    type="button"
+                                    onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== idx))}
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <form
                     className="flex w-full items-end gap-2"
                     onSubmit={(e) => {
@@ -366,6 +461,16 @@ function ChatContent({
                         handleSubmit();
                     }}
                 >
+                    <Button
+                        className="h-9 w-9 shrink-0"
+                        size="icon"
+                        title="Прикрепить изображение"
+                        type="button"
+                        variant="ghost"
+                        onClick={handleAttachImage}
+                    >
+                        <ImagePlus className="h-4 w-4" />
+                    </Button>
                     <ChatInputEditor
                         placeholder={
                             pendingQuotes.length > 0
@@ -390,7 +495,7 @@ function ChatContent({
                         onSubmit={handleSubmit}
                     />
                     <Button
-                        disabled={!input.trim() && pendingQuotes.length === 0}
+                        disabled={!input.trim() && pendingQuotes.length === 0 && pendingImages.length === 0}
                         size="icon"
                         type="submit"
                     >

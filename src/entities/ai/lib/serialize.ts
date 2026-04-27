@@ -1,4 +1,4 @@
-import type { Chat, ChatMessage } from '@/shared/ai/types';
+import type { Chat, ChatMessage, ChatMessagePart } from '@/shared/ai/types';
 
 export function chatToMarkdown(chat: Chat): string {
     const frontmatter = [
@@ -12,12 +12,13 @@ export function chatToMarkdown(chat: Chat): string {
 
     const body = chat.messages
         .map((m) => {
-            const text = m.parts
-                .filter((p) => p.type === 'text')
-                .map((p) => p.text)
-                .join('');
+            const segments = m.parts.map((p) => {
+                if (p.type === 'image') return `[IMAGE:${p.path}|${p.name}]`;
 
-            return `[${m.role}]: ${text}`;
+                return p.text;
+            });
+
+            return `[${m.role}]: ${segments.join('\n')}`;
         })
         .join('\n\n');
 
@@ -63,15 +64,35 @@ export function parseChat(content: string): Chat {
             });
         }
 
+        const imageMarkerRegex = /\[IMAGE:(.+?)\|(.+?)\]/g;
+
         for (let i = 0; i < parts.length; i++) {
             const end =
                 i + 1 < parts.length ? body.lastIndexOf('\n', parts[i + 1].start) : body.length;
-            const text = body.slice(parts[i].start, end).trim();
+            const rawText = body.slice(parts[i].start, end).trim();
+
+            const msgParts: ChatMessagePart[] = [];
+            let lastIndex = 0;
+            let imgMatch;
+
+            imageMarkerRegex.lastIndex = 0;
+            while ((imgMatch = imageMarkerRegex.exec(rawText)) !== null) {
+                const before = rawText.slice(lastIndex, imgMatch.index).trim();
+
+                if (before) msgParts.push({ type: 'text', text: before });
+                msgParts.push({ type: 'image', path: imgMatch[1], name: imgMatch[2] });
+                lastIndex = imgMatch.index + imgMatch[0].length;
+            }
+
+            const remaining = rawText.slice(lastIndex).trim();
+
+            if (remaining) msgParts.push({ type: 'text', text: remaining });
+            if (msgParts.length === 0) msgParts.push({ type: 'text', text: '' });
 
             messages.push({
                 id: `msg-${meta.id}-${i}`,
                 role: parts[i].role,
-                parts: [{ type: 'text', text }],
+                parts: msgParts,
             });
         }
     }

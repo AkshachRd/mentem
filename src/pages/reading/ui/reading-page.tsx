@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { FileSelector } from './file-selector';
 
@@ -41,6 +42,14 @@ export function ReadingPage() {
 
     const handleFileRemove = (filePath: string) => {
         removePdfPath(filePath);
+
+        const fileName = filePath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || filePath;
+        toast(`«${fileName}» удалён`, {
+            action: {
+                label: 'Отменить',
+                onClick: () => addPdfPaths([filePath]),
+            },
+        });
     };
 
     const handleClearAll = () => {
@@ -77,7 +86,7 @@ export function ReadingPage() {
                             className="text-muted-foreground text-xs font-medium whitespace-nowrap"
                             style={{ writingMode: 'vertical-rl' }}
                         >
-                            PDF Files
+                            Files
                         </span>
                     </Card>
                 )}
@@ -111,7 +120,7 @@ export function ReadingPage() {
                             className="text-muted-foreground text-xs font-medium whitespace-nowrap"
                             style={{ writingMode: 'vertical-rl' }}
                         >
-                            AI Ассистент
+                            AI Assistant
                         </span>
                     </Card>
                 )}

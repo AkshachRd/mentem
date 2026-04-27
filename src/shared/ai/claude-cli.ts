@@ -22,12 +22,14 @@ export async function claudeStreamStart(
     systemPrompt: string,
     userPrompt: string,
     model?: string,
+    images?: string[],
 ): Promise<void> {
     return invokeCmd<void>('ai_stream_start', {
         sessionId,
         systemPrompt,
         userPrompt,
         model: model || null,
+        images: images && images.length > 0 ? images : null,
     } as InvokeArgs);
 }
 

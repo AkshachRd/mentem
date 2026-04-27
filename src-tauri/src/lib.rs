@@ -107,6 +107,7 @@ async fn ai_stream_start(
     system_prompt: String,
     user_prompt: String,
     model: Option<String>,
+    images: Option<Vec<String>>,
     app: tauri::AppHandle,
     state: tauri::State<'_, AiProcesses>,
 ) -> Result<(), String> {
@@ -123,6 +124,13 @@ async fn ai_stream_start(
         if m != "auto" {
             args.push("--model".to_string());
             args.push(m.clone());
+        }
+    }
+
+    if let Some(ref imgs) = images {
+        for img_path in imgs {
+            args.push("-f".to_string());
+            args.push(img_path.clone());
         }
     }
 

@@ -22,7 +22,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/shared/ui/shadcn/card';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { useTextSelection, usePdfTextSelection } from '@/shared/lib/hooks';
 import { Switch } from '@/shared/ui/switch';
@@ -126,7 +126,6 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
         <Card className="flex h-full flex-col">
             <CardHeader className="flex-shrink-0">
                 <div className="flex items-center justify-between">
-                    <CardTitle>PDF Viewer</CardTitle>
                     <div className="flex items-center gap-4">
                         {numPages && (
                             <div className="flex items-center gap-2">
