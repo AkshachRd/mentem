@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+import { FileText, MessageSquare, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { FileSelector } from './file-selector';
@@ -11,6 +11,7 @@ import { ChatPanel } from '@/entities/ai/ui/chatPanel';
 import { useSettingsStore } from '@/entities/settings';
 import { Card } from '@/shared/ui/shadcn/card';
 import { Button } from '@/shared/ui/button';
+import { cn } from '@/shared/lib/utils';
 
 const PdfViewer = dynamic(() => import('./pdf-viewer').then((mod) => mod.PdfViewer), {
     ssr: false,
@@ -31,6 +32,7 @@ export function ReadingPage() {
 
     const [isFileSelectorOpen, setIsFileSelectorOpen] = useState(true);
     const [isChatOpen, setIsChatOpen] = useState(true);
+    const [mobilePanel, setMobilePanel] = useState<'files' | 'chat' | null>(null);
 
     const handleFilesAdd = (filePaths: string[]) => {
         addPdfPaths(filePaths);
@@ -43,7 +45,12 @@ export function ReadingPage() {
     const handleFileRemove = (filePath: string) => {
         removePdfPath(filePath);
 
-        const fileName = filePath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, '') || filePath;
+        const fileName =
+            filePath
+                .split(/[/\\]/)
+                .pop()
+                ?.replace(/\.[^.]+$/, '') || filePath;
+
         toast(`«${fileName}» удалён`, {
             action: {
                 label: 'Отменить',
@@ -57,9 +64,35 @@ export function ReadingPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-7.5rem)] w-full gap-4 p-4">
+        <div className="relative flex h-[calc(100vh-7.5rem)] w-full flex-col gap-2 p-2 md:flex-row md:gap-4 md:p-4">
+            <div className="bg-card flex min-h-10 items-center gap-2 border px-2 md:hidden">
+                <Button
+                    className="h-8 gap-1"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setMobilePanel('files')}
+                >
+                    <FileText className="h-4 w-4" />
+                    Files
+                </Button>
+                <div className="min-w-0 flex-1 text-center">
+                    <p className="truncate text-xs font-medium">
+                        {selectedPdfPath ? selectedPdfPath.split(/[/\\]/).pop() : 'No PDF selected'}
+                    </p>
+                </div>
+                <Button
+                    className="h-8 gap-1"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setMobilePanel('chat')}
+                >
+                    <MessageSquare className="h-4 w-4" />
+                    AI
+                </Button>
+            </div>
+
             <div
-                className="flex-shrink-0 overflow-hidden transition-[width] duration-300"
+                className="hidden flex-shrink-0 overflow-hidden transition-[width] duration-300 md:block"
                 style={{ width: isFileSelectorOpen ? '15rem' : '2.5rem' }}
             >
                 {isFileSelectorOpen ? (
@@ -91,14 +124,14 @@ export function ReadingPage() {
                     </Card>
                 )}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-h-0 flex-1 md:min-w-0">
                 <PdfViewer
                     filePath={selectedPdfPath}
                     panelState={`${isFileSelectorOpen}-${isChatOpen}`}
                 />
             </div>
             <div
-                className="flex-shrink-0 overflow-hidden transition-[width] duration-300"
+                className="hidden flex-shrink-0 overflow-hidden transition-[width] duration-300 md:block"
                 style={{ width: isChatOpen ? '20rem' : '2.5rem' }}
             >
                 {isChatOpen ? (
@@ -124,6 +157,36 @@ export function ReadingPage() {
                         </span>
                     </Card>
                 )}
+            </div>
+
+            <div
+                className={cn(
+                    'bg-background/80 absolute inset-0 z-[60] p-2 backdrop-blur-sm md:hidden',
+                    mobilePanel ? 'block' : 'hidden',
+                )}
+            >
+                <div aria-modal="true" className="h-full" role="dialog">
+                    {mobilePanel === 'files' && (
+                        <FileSelector
+                            currentFilePath={selectedPdfPath}
+                            selectedFilePaths={selectedPdfPaths}
+                            onClearAll={handleClearAll}
+                            onCollapse={() => setMobilePanel(null)}
+                            onFileRemove={handleFileRemove}
+                            onFileSelect={(filePath) => {
+                                handleFileSelect(filePath);
+                                setMobilePanel(null);
+                            }}
+                            onFilesAdd={handleFilesAdd}
+                        />
+                    )}
+                    {mobilePanel === 'chat' && (
+                        <ChatPanel
+                            bookFileName={selectedPdfPath?.split(/[/\\]/).pop() ?? undefined}
+                            onCollapse={() => setMobilePanel(null)}
+                        />
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -5,10 +5,22 @@ import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
 const ZOOM_STEP = 0.25;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3.0;
+const MOBILE_BREAKPOINT = '(max-width: 767px)';
+
+type PdfPageLoad = {
+    width: number;
+    height: number;
+    originalWidth?: number;
+    originalHeight?: number;
+};
+
+function shouldFitPageByDefault() {
+    return typeof window !== 'undefined' && window.matchMedia(MOBILE_BREAKPOINT).matches;
+}
 
 export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, panelState: string) {
     const [scale, setScale] = useState(1.0);
-    const [pageFit, setPageFit] = useState(false);
+    const [pageFit, setPageFit] = useState(shouldFitPageByDefault);
     const [pageWidth, setPageWidth] = useState<number | null>(null);
 
     const calculatePageFit = useCallback(() => {
@@ -27,9 +39,15 @@ export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, panelSta
         });
     }, [pageWidth, containerRef]);
 
-    const onPageLoadSuccess = useCallback((page: { width: number; height: number }) => {
-        setPageWidth(page.width);
+    const onPageLoadSuccess = useCallback((page: PdfPageLoad) => {
+        setPageWidth(page.originalWidth ?? page.width);
     }, []);
+
+    useEffect(() => {
+        if (!pageFit || !pageWidth) return;
+
+        calculatePageFit();
+    }, [pageFit, pageWidth, calculatePageFit]);
 
     // Recalculate fit only when panel layout changes (collapse/expand)
     const prevPanelStateRef = useRef(panelState);
@@ -84,18 +102,19 @@ export function usePdfZoom(containerRef: RefObject<HTMLElement | null>, panelSta
     }, []);
 
     const handlePageFit = useCallback(() => {
-        const newPageFit = !pageFit;
-
-        setPageFit(newPageFit);
-
-        if (newPageFit) {
+        if (pageFit) {
             calculatePageFit();
+
+            return;
         }
+
+        setPageFit(true);
+        calculatePageFit();
     }, [pageFit, calculatePageFit]);
 
     const resetZoom = useCallback(() => {
         setScale(1.0);
-        setPageFit(false);
+        setPageFit(shouldFitPageByDefault());
         setPageWidth(null);
     }, []);
 

@@ -3,6 +3,7 @@
 import type { ViewMode } from '../model/use-pdf-navigation';
 
 import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 import { usePdfContainerRef } from '../model/use-pdf-container-ref';
@@ -123,35 +124,41 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
     }
 
     return (
-        <Card className="flex h-full flex-col">
-            <CardHeader className="flex-shrink-0">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+        <Card className="flex h-full min-h-0 flex-col">
+            <CardHeader className="flex-shrink-0 p-2 md:p-4">
+                <div className="flex min-w-0 flex-col gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2 md:gap-4">
                         {numPages && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 items-center gap-2">
                                 <Button
+                                    aria-label="Previous page"
+                                    className="px-2"
                                     disabled={nav.pageNumber <= 1}
                                     size="sm"
                                     variant="outline"
                                     onClick={nav.goToPrevPage}
                                 >
-                                    Previous
+                                    <ChevronLeft className="h-4 w-4 md:hidden" />
+                                    <span className="hidden md:inline">Previous</span>
                                 </Button>
-                                <span className="text-muted-foreground text-sm">
-                                    Page {nav.pageNumber} of {numPages}
+                                <span className="text-muted-foreground min-w-0 text-xs whitespace-nowrap md:text-sm">
+                                    {nav.pageNumber} / {numPages}
                                 </span>
                                 <Button
+                                    aria-label="Next page"
+                                    className="px-2"
                                     disabled={nav.pageNumber >= numPages}
                                     size="sm"
                                     variant="outline"
                                     onClick={nav.goToNextPage}
                                 >
-                                    Next
+                                    <ChevronRight className="h-4 w-4 md:hidden" />
+                                    <span className="hidden md:inline">Next</span>
                                 </Button>
                             </div>
                         )}
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2 md:gap-4">
+                            <div className="flex items-center gap-2 whitespace-nowrap">
                                 <span className="text-muted-foreground text-xs">Single page</span>
                                 <Switch
                                     aria-label="Toggle view mode"
@@ -163,17 +170,19 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
                                 />
                                 <span className="text-muted-foreground text-xs">All pages</span>
                             </div>
-                            <div className="flex items-center gap-2 border-l pl-4">
+                            <div className="flex items-center gap-1 border-l pl-2 md:gap-2 md:pl-4">
                                 <Button
+                                    className="h-7 w-7 px-0"
                                     disabled={zoom.scale <= zoom.MIN_ZOOM}
                                     size="sm"
                                     title="Zoom out"
                                     variant="outline"
                                     onClick={zoom.handleZoomOut}
                                 >
-                                    −
+                                    <Minus className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button
+                                    className="h-7 px-2"
                                     size="sm"
                                     title="Fit to page"
                                     variant={zoom.pageFit ? 'default' : 'outline'}
@@ -185,22 +194,25 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
                                     {Math.round(zoom.scale * 100)}%
                                 </span>
                                 <Button
+                                    className="h-7 w-7 px-0"
                                     disabled={zoom.scale >= zoom.MAX_ZOOM}
                                     size="sm"
                                     title="Zoom in"
                                     variant="outline"
                                     onClick={zoom.handleZoomIn}
                                 >
-                                    +
+                                    <Plus className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button
+                                    className="h-7 w-7 px-0 md:w-auto md:px-2.5"
                                     disabled={zoom.scale === 1.0 && !zoom.pageFit}
                                     size="sm"
                                     title="Reset zoom"
                                     variant="outline"
                                     onClick={zoom.handleResetZoom}
                                 >
-                                    Reset
+                                    <RotateCcw className="h-3.5 w-3.5 md:hidden" />
+                                    <span className="hidden md:inline">Reset</span>
                                 </Button>
                             </div>
                         </div>
@@ -222,7 +234,7 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
                     onSearchTermChange={search.setSearchTerm}
                 />
             )}
-            <CardContent className="flex flex-1 flex-col overflow-hidden p-4">
+            <CardContent className="flex flex-1 flex-col overflow-hidden p-1 md:p-4">
                 <div ref={scrollAreaContainerRef} className="min-h-0 flex-1">
                     <ScrollArea className="h-full w-full">
                         {error ? (
@@ -242,7 +254,7 @@ export function PdfViewer({ filePath, panelState = '' }: PdfViewerProps) {
                                     onSearch={ctx.handlers.onSearch}
                                     onSendToChat={ctx.handlers.onSendToChat}
                                 >
-                                    <div className="flex flex-col items-center gap-4 p-4">
+                                    <div className="flex flex-col items-center gap-3 p-1 md:gap-4 md:p-4">
                                         <Document
                                             file={fileUrl}
                                             loading={
